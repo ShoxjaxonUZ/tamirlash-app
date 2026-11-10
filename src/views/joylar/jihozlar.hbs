@@ -1,0 +1,47 @@
+<div class="page-head">
+  <h1>Jihozlar</h1>
+  <div class="row">
+    <a class="btn btn-primary" href="/admin/jihozlar/yangi">{{> icon name="plus"}}Jihoz qo'shish</a>
+    <a class="btn btn-ghost" href="/admin/jihozlar/import">Excel dan yuklash</a>
+    <a class="btn btn-ghost" href="/admin/turlar">Jihoz turlari</a>
+  </div>
+</div>
+
+<form method="get" action="/admin/jihozlar" class="card filters" data-avto-yubor>
+  <label class="field"><span>Bino</span>
+    <select name="bino"><option value="">Barchasi</option>{{#each binolar}}<option value="{{id}}" {{#if (eq id @root.filtr.bino)}}selected{{/if}}>{{nomi}}</option>{{/each}}</select>
+  </label>
+  <label class="field"><span>Turi</span>
+    <select name="tur"><option value="">Barchasi</option>{{#each turlar}}<option value="{{id}}" {{#if (eq id @root.filtr.tur)}}selected{{/if}}>{{nomi}}</option>{{/each}}</select>
+  </label>
+  <label class="field"><span>Holati</span>
+    <select name="holat">{{#each holatlar}}<option value="{{kalit}}" {{#if (eq kalit @root.filtr.holat)}}selected{{/if}}>{{nomi}}</option>{{/each}}</select>
+  </label>
+  <label class="field field-grow"><span>Qidirish</span><input name="q" value="{{filtr.q}}" placeholder="Belgi, inventar raqami yoki xona"></label>
+  <div class="filters-actions"><button class="btn btn-primary" type="submit">Ko'rsatish</button></div>
+</form>
+
+{{#if rows.length}}
+<div class="card table-wrap">
+  <table class="table">
+    <thead><tr><th>Jihoz</th><th>Joyi</th><th>Inventar</th><th>Holati</th></tr></thead>
+    <tbody>
+      {{#each rows}}
+      <tr class="{{#unless faol}}is-off{{/unless}}">
+        <td><a href="/jihozlar/{{id}}">{{tur}} {{belgi}}</a></td>
+        <td><a href="/xonalar/{{xona_id}}">{{bino}} · {{xona}}</a></td>
+        <td>{{default inventar_raqami "—"}}</td>
+        <td>
+          {{#unless faol}}<span class="badge">Hisobdan chiqarilgan</span>{{/unless}}
+          {{#if ochiq}}<span class="badge holat-jarayonda">Ta'mirda</span>{{/if}}
+          {{#if (gt soni90 2)}}<span class="badge badge-warn" title="90 kunda {{soni90}} marta">Muammoli</span>{{/if}}
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>
+{{> pager base="/admin/jihozlar"}}
+{{else}}
+  {{> bosh matn="Jihoz topilmadi."}}
+{{/if}}

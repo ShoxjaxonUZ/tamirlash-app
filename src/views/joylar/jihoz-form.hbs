@@ -1,0 +1,28 @@
+<div class="page-head"><h1>{{title}}</h1></div>
+{{> errors}}
+<form method="post" action="{{#if jihoz.id}}/admin/jihozlar/{{jihoz.id}}{{else}}/admin/jihozlar{{/if}}" class="card stack narrow">
+  {{> csrf}}
+  <label class="field"><span>Xona</span>
+    <select name="xona_id" required>
+      <option value="">— tanlang —</option>
+      {{#each xonaGuruhlari}}<optgroup label="{{bino}}">{{#each items}}<option value="{{id}}" {{#if (eq id @root.jihoz.xona_id)}}selected{{/if}}>{{raqam}}-xona ({{qavat}}-qavat)</option>{{/each}}</optgroup>{{/each}}
+    </select>
+  </label>
+  <label class="field"><span>Turi</span>
+    <select name="tur_id" required>
+      <option value="">— tanlang —</option>
+      {{#each turlar}}<option value="{{id}}" {{#if (eq id @root.jihoz.tur_id)}}selected{{/if}}>{{nomi}}</option>{{/each}}
+    </select>
+  </label>
+  <div class="grid-2 tight">
+    <label class="field"><span>Belgisi</span><input name="belgi" value="{{jihoz.belgi}}" maxlength="40" required placeholder="#3">
+      <small class="hint">Jihozga yopishtirilgan raqam — foydalanuvchi shu bo'yicha tanlaydi</small></label>
+    <label class="field"><span>Inventar raqami <em>(ixtiyoriy)</em></span><input name="inventar_raqami" value="{{jihoz.inventar_raqami}}" maxlength="40"></label>
+  </div>
+  {{#if jihoz.id}}<label class="check"><input type="checkbox" name="faol" {{#if jihoz.faol}}checked{{/if}}> Faol (belgilanmasa — hisobdan chiqarilgan)</label>{{/if}}
+  <div class="row">
+    <button class="btn btn-primary" type="submit">Saqlash</button>
+    {{#unless jihoz.id}}<button class="btn" type="submit" name="yana" value="1">Saqlash va yana qo'shish</button>{{/unless}}
+    <a class="btn btn-ghost" href="{{#if jihoz.id}}/jihozlar/{{jihoz.id}}{{else}}/admin/jihozlar{{/if}}">Bekor qilish</a>
+  </div>
+</form>

@@ -1,0 +1,19 @@
+<section class="hero">
+  <div>
+    <h1>Salom, {{me.ism}}!</h1>
+    <p>Auditoriyada kompyuter, stol, stul yoki boshqa jihoz buzilganmi? Xabar bering — ariza ustaga yetib boradi, holatini shu yerda kuzatasiz.</p>
+  </div>
+  <a class="btn btn-primary btn-lg" href="/arizalar/yangi">{{> icon name="plus"}}Nosozlik haqida xabar berish</a>
+</section>
+
+<p class="tip">{{> icon name="qr"}}<span>Tezroq: xona eshigidagi QR-kodni telefon kamerasi bilan skanerlang — forma xona tanlangan holda ochiladi.</span></p>
+
+<div class="section-head">
+  <h2>Ochiq arizalarim</h2>
+  <a href="/arizalar?tab=yopiq">Yopilganlar →</a>
+</div>
+{{#if arizalar.length}}
+  <div class="list">{{#each arizalar}}{{> ariza-row}}{{/each}}</div>
+{{else}}
+  {{> bosh matn="Hozircha ochiq arizangiz yo'q."}}
+{{/if}}

@@ -1,0 +1,17 @@
+<div class="page-head">
+  <h1>Mening arizalarim</h1>
+  <a class="btn btn-primary" href="/arizalar/yangi">{{> icon name="plus"}}Yangi ariza</a>
+</div>
+
+<nav class="tabs" aria-label="Arizalar">
+  <a href="/arizalar" {{#if (eq tab "ochiq")}}aria-current="page"{{/if}}>Ochiq</a>
+  <a href="/arizalar?tab=yopiq" {{#if (eq tab "yopiq")}}aria-current="page"{{/if}}>Yopilgan</a>
+</nav>
+
+<p class="muted small">O'zingiz bergan arizalar va "Menda ham shu muammo" deb qo'shilganlaringiz.</p>
+
+{{#if arizalar.length}}
+  <div class="list">{{#each arizalar}}{{> ariza-row}}{{/each}}</div>
+{{else}}
+  {{#if (eq tab "ochiq")}}{{> bosh matn="Ochiq arizangiz yo'q."}}{{else}}{{> bosh matn="Yopilgan arizalar yo'q."}}{{/if}}
+{{/if}}

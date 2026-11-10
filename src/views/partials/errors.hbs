@@ -1,0 +1,5 @@
+{{#if xatolar.length}}
+<div class="alert alert-xato" role="alert">
+  {{#if (eq xatolar.length 1)}}{{xatolar.[0]}}{{else}}<strong>Iltimos, tuzating:</strong><ul>{{#each xatolar}}<li>{{this}}</li>{{/each}}</ul>{{/if}}
+</div>
+{{/if}}

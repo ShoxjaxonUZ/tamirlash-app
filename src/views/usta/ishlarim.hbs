@@ -1,0 +1,17 @@
+<div class="page-head"><h1>Mening ishlarim</h1></div>
+
+<nav class="tabs" aria-label="Ishlar">
+  <a href="/mening-ishlarim" {{#if (eq tab "faol")}}aria-current="page"{{/if}}>Faol <span class="count">{{son.faol}}</span></a>
+  <a href="/mening-ishlarim?tab=tekshiruvda" {{#if (eq tab "tekshiruvda")}}aria-current="page"{{/if}}>Tekshiruvda <span class="count">{{son.tekshiruvda}}</span></a>
+  <a href="/mening-ishlarim?tab=bajarilgan" {{#if (eq tab "bajarilgan")}}aria-current="page"{{/if}}>Bajarilgan (30 kun) <span class="count">{{son.bajarilgan}}</span></a>
+</nav>
+
+{{#if (and (eq tab "faol") son.kechikkan)}}
+<div class="alert alert-late">{{son.kechikkan}} ta ishning muddati o'tgan — ular ro'yxat boshida.</div>
+{{/if}}
+
+{{#if ishlar.length}}
+  <div class="list">{{#each ishlar}}{{> ariza-row}}{{/each}}</div>
+{{else}}
+  {{> bosh matn="Bu bo'limda ish yo'q."}}
+{{/if}}

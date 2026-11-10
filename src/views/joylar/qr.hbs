@@ -1,0 +1,19 @@
+<div class="print-toolbar no-print">
+  <a href="/admin/binolar/{{bino.id}}">← {{bino.nomi}}</a>
+  <span>{{kartalar.length}} ta xona · A4 varaqqa 6 tadan</span>
+  <button class="btn btn-primary" type="button" data-chop>Chop etish</button>
+</div>
+
+<div class="qr-sheet">
+  {{#each kartalar}}
+  <div class="qr-label">
+    <div class="qr-label-head">
+      <strong>{{../bino.nomi}} · {{raqam}}-xona</strong>
+      <span>{{qavat}}-qavat</span>
+    </div>
+    <div class="qr">{{{svg}}}</div>
+    <p class="qr-label-text">Bu xonada biror narsa buzilganmi?<br><b>Telefon kamerasi bilan skanerlang</b> va xabar bering.</p>
+    <small class="qr-label-url">{{manzil}}</small>
+  </div>
+  {{/each}}
+</div>

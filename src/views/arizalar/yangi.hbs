@@ -1,0 +1,111 @@
+<div class="page-head"><h1>Yangi ariza</h1></div>
+
+{{#if bosqich1}}
+<ol class="steps" aria-label="Bosqichlar"><li class="on" aria-current="step">1. Joy</li><li>2. Muammo</li></ol>
+{{> errors}}
+<form method="get" action="/arizalar/yangi" class="card stack" data-xona-tanlash>
+  <p class="muted">Buzilgan jihoz qaysi xonada? Xona eshigida QR-kod bo'lsa, uni skanerlang — bu bosqich o'tkazib yuboriladi.</p>
+  <div class="grid-3">
+    <label class="field js-only"><span>Bino</span>
+      <select data-filtr="bino"><option value="">Barcha binolar</option>{{#each binolar}}<option value="{{id}}">{{nomi}}</option>{{/each}}</select>
+    </label>
+    <label class="field js-only"><span>Qavat</span>
+      <select data-filtr="qavat"><option value="">Barcha qavatlar</option></select>
+    </label>
+    <label class="field"><span>Xona</span>
+      <select name="xona" required data-xona>
+        <option value="">— tanlang —</option>
+        {{#each xonalar}}<option value="{{id}}" data-bino="{{bino_id}}" data-qavat="{{qavat}}">{{bino}} · {{raqam}}-xona ({{qavat}}-qavat)</option>{{/each}}
+      </select>
+    </label>
+  </div>
+  {{#unless xonalar.length}}<p class="alert alert-warn">Tizimda hali xonalar kiritilmagan. Xo'jalik bo'limiga murojaat qiling.</p>{{/unless}}
+  <div><button class="btn btn-primary" type="submit">Davom etish →</button></div>
+</form>
+
+{{else}}
+<ol class="steps" aria-label="Bosqichlar"><li class="done"><a href="/arizalar/yangi">1. Joy</a></li><li class="on" aria-current="step">2. Muammo</li></ol>
+
+<div class="card place">
+  {{> icon name="pin"}}
+  <div><strong>{{xona.bino}} · {{xona.raqam}}-xona</strong><span class="muted">{{xona.qavat}}-qavat · {{xonaTuri xona.turi}}</span></div>
+  <a class="btn btn-ghost btn-sm" href="/arizalar/yangi">O'zgartirish</a>
+</div>
+
+{{#if ochiq.length}}
+<section class="card dup">
+  <h2>{{> icon name="alert"}}Bu xonada allaqachon xabar berilgan muammolar</h2>
+  <p class="muted">Muammoingiz shulardan biri bo'lsa, yangi ariza bermang — <b>"Menda ham shu muammo"</b> ni bosing. Holat o'zgarsa, sizga ham xabar keladi.</p>
+  <ul class="dup-list">
+    {{#each ochiq}}
+    <li>
+      <div>
+        <div class="row-tight"><strong>{{raqam}}</strong>{{> holat h=holat}}<span>{{jihozNomi this}}</span></div>
+        <p>{{qisqa tavsif 150}}</p>
+        <small class="muted">{{xabar_berganlar}} kishi xabar bergan · {{vaqt yaratilgan}}</small>
+      </div>
+      {{#if meniki}}<a class="btn btn-ghost btn-sm" href="/arizalar/{{id}}">Mening arizam</a>
+      {{else if qoshilganman}}<a class="btn btn-ghost btn-sm" href="/arizalar/{{id}}">Qo'shilgansiz ✓</a>
+      {{else}}<form method="post" action="/arizalar/{{id}}/menda-ham">{{> csrf}}<button class="btn btn-sm" type="submit">Menda ham shu muammo</button></form>{{/if}}
+    </li>
+    {{/each}}
+  </ul>
+</section>
+{{/if}}
+
+{{> errors}}
+<form method="post" action="/arizalar" enctype="multipart/form-data" class="card stack" data-ariza-forma>
+  {{> csrf}}
+  <input type="hidden" name="xona_id" value="{{xona.id}}">
+
+  {{#if jihozBor}}
+  <label class="field"><span>Qaysi jihoz?</span>
+    <select name="jihoz_id" data-jihoz>
+      <option value="">Ro'yxatda yo'q — turini tanlayman</option>
+      {{#each jihozGuruhlari}}<optgroup label="{{tur}}">{{#each items}}<option value="{{id}}" {{#if (eq id @root.qiymat.jihoz_id)}}selected{{/if}}>{{tur}} {{belgi}}</option>{{/each}}</optgroup>{{/each}}
+    </select>
+    <small class="hint">Jihozga yopishtirilgan raqam yoki belgi bo'yicha tanlang (masalan, "#3")</small>
+  </label>
+  {{/if}}
+
+  <label class="field" data-tur>
+    <span>Jihoz turi{{#if jihozBor}} <em>(ro'yxatda bo'lmasa)</em>{{/if}}</span>
+    <select name="tur_id">
+      <option value="">— tanlang —</option>
+      {{#each turlar}}<option value="{{id}}" {{#if (eq id @root.qiymat.tur_id)}}selected{{/if}}>{{nomi}}</option>{{/each}}
+    </select>
+  </label>
+
+  <label class="field"><span>Xonadagi aniq joyi <em>(ixtiyoriy)</em></span>
+    <input name="joy_izohi" maxlength="200" value="{{qiymat.joy_izohi}}" placeholder="Masalan: deraza tomondagi 2-qator">
+  </label>
+
+  <label class="field"><span>Muammo tavsifi</span>
+    <textarea name="tavsif" rows="4" minlength="10" maxlength="2000" required data-sanagich
+      placeholder="Nima bo'ldi? Masalan: kompyuter yonmayapti, quvvat tugmasi bosilganda hech narsa bo'lmaydi">{{qiymat.tavsif}}</textarea>
+    <small class="hint" data-sanagich-matn>Kamida 10 belgi</small>
+  </label>
+
+  <fieldset class="field">
+    <legend>Muhimlik darajasi</legend>
+    <div class="choices">
+      {{#each muhimliklar}}
+      <label class="choice choice-{{kalit}}">
+        <input type="radio" name="muhimlik" value="{{kalit}}" {{#if (eq kalit @root.qiymat.muhimlik)}}checked{{/if}} required>
+        <span><strong>{{nomi}}</strong><small>{{izoh}}</small><small class="muted">Bajarish muddati: {{muddat}}</small></span>
+      </label>
+      {{/each}}
+    </div>
+  </fieldset>
+
+  <div class="field">
+    <span class="label">Rasmlar <em>(ixtiyoriy · {{maxRasm}} tagacha · har biri 5 MB gacha · JPG/PNG)</em></span>
+    <label class="upload">{{> icon name="camera"}}<span>Rasm tanlash yoki suratga olish</span>
+      <input type="file" name="rasmlar" accept="image/jpeg,image/png" multiple data-max="{{maxRasm}}">
+    </label>
+    <div class="previews" data-previews></div>
+  </div>
+
+  <div><button class="btn btn-primary btn-lg" type="submit">Arizani yuborish</button></div>
+</form>
+{{/if}}

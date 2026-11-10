@@ -1,0 +1,103 @@
+<div class="page-head">
+  <h1>Hisobotlar</h1>
+  <a class="btn btn-ghost" href="{{url "/hisobotlar/excel" filtr}}">{{> icon name="download"}}Excel ga yuklab olish</a>
+</div>
+
+<form method="get" action="/hisobotlar" class="card filters">
+  <label class="field"><span>Dan</span><input type="date" name="dan" value="{{filtr.dan}}"></label>
+  <label class="field"><span>Gacha</span><input type="date" name="gacha" value="{{filtr.gacha}}"></label>
+  <label class="field"><span>Bino</span>
+    <select name="bino"><option value="">Barchasi</option>{{#each binolar}}<option value="{{id}}" {{#if (eq id @root.filtr.bino)}}selected{{/if}}>{{nomi}}</option>{{/each}}</select>
+  </label>
+  <label class="field"><span>Jihoz turi</span>
+    <select name="tur"><option value="">Barchasi</option>{{#each turlar}}<option value="{{id}}" {{#if (eq id @root.filtr.tur)}}selected{{/if}}>{{nomi}}</option>{{/each}}</select>
+  </label>
+  <div class="filters-actions"><button class="btn btn-primary" type="submit">Ko'rsatish</button></div>
+</form>
+
+<p class="muted small">Davr ariza berilgan sana bo'yicha: {{filtr.dan}} — {{filtr.gacha}}.</p>
+
+<div class="stats">
+  <div class="stat"><b>{{umumiy.jami}}</b><span>Jami arizalar</span></div>
+  <div class="stat"><b>{{umumiy.yopilgan}}</b><span>Yopilgan</span></div>
+  <div class="stat"><b>{{davomiylik umumiy.ortacha_soat}}</b><span>O'rtacha bajarilish vaqti</span></div>
+  <div class="stat"><b>{{#if umumiy.yopilgan}}{{foiz umumiy.muddatida umumiy.yopilgan}}%{{else}}—{{/if}}</b><span>Muddatida bajarilgan</span></div>
+  <div class="stat{{#if umumiy.kechikkan}} stat-late{{/if}}"><b>{{umumiy.kechikkan}}</b><span>Hozir kechikkan</span></div>
+  <div class="stat"><b>{{default umumiy.baho "—"}}</b><span>O'rtacha baho{{#if umumiy.baholar}} ({{umumiy.baholar}} ta){{/if}}</span></div>
+</div>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Holatlar bo'yicha</h2>
+    <ul class="bars">
+      {{#each holatlar}}
+      <li><span class="bar-label">{{holat kalit}}</span>
+        <svg class="bar bar-{{kalit}}" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect width="{{ulush}}" height="10" rx="2"/></svg>
+        <b>{{soni}}</b></li>
+      {{/each}}
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Eng ko'p buziladigan xonalar</h2>
+    {{#if xonalar.length}}
+    <ul class="bars">
+      {{#each xonalar}}
+      <li><a class="bar-label" href="/xonalar/{{id}}">{{bino}} · {{xona}}</a>
+        <svg class="bar" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect width="{{ulush}}" height="10" rx="2"/></svg>
+        <b>{{soni}}</b></li>
+      {{/each}}
+    </ul>
+    {{else}}<p class="muted">Bu davrda ariza yo'q.</p>{{/if}}
+  </section>
+</div>
+
+<section class="card">
+  <h2>Jihoz turlari bo'yicha</h2>
+  {{#if turStat.length}}
+  <ul class="bars bars-wide">
+    {{#each turStat}}
+    <li><span class="bar-label">{{tur}}</span>
+      <svg class="bar" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect width="{{ulush}}" height="10" rx="2"/></svg>
+      <b>{{soni}}</b><span class="muted small">{{davomiylik ortacha_soat}}</span></li>
+    {{/each}}
+  </ul>
+  {{else}}<p class="muted">Bu davrda ariza yo'q.</p>{{/if}}
+</section>
+
+<section class="card table-wrap">
+  <h2>Ustalar</h2>
+  {{#if ustalar.length}}
+  <table class="table">
+    <thead><tr><th>Usta</th><th class="num">Biriktirilgan</th><th class="num">Bajarilgan</th><th class="num">Muddatida</th><th class="num">Hozir kechikkan</th><th class="num">O'rtacha vaqt</th><th class="num">Baho</th></tr></thead>
+    <tbody>
+      {{#each ustalar}}
+      <tr>
+        <td><a href="/boshqaruv?usta={{id}}&holat=hammasi">{{familiya}} {{ism}}</a></td>
+        <td class="num">{{biriktirilgan}}</td>
+        <td class="num">{{bajarilgan}}</td>
+        <td class="num">{{#if bajarilgan}}{{foiz muddatida bajarilgan}}%{{else}}—{{/if}}</td>
+        <td class="num{{#if kechikkan}} text-late{{/if}}">{{kechikkan}}</td>
+        <td class="num">{{davomiylik ortacha_soat}}</td>
+        <td class="num">{{default baho "—"}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{else}}<p class="muted">Bu davrda ustalarga biriktirilgan ariza yo'q.</p>{{/if}}
+</section>
+
+<section class="card table-wrap">
+  <h2>Muammoli jihozlar <span class="muted small">(oxirgi 90 kunda 3 va undan ko'p marta)</span></h2>
+  {{#if muammoli.length}}
+  <table class="table">
+    <thead><tr><th>Jihoz</th><th>Joyi</th><th class="num">Arizalar</th></tr></thead>
+    <tbody>
+      {{#each muammoli}}
+      <tr><td><a href="/jihozlar/{{id}}">{{tur}} {{belgi}}</a></td><td>{{bino}} · {{xona}}</td><td class="num">{{soni}}</td></tr>
+      {{/each}}
+    </tbody>
+  </table>
+  <p class="muted small">Bu jihozlarni almashtirish tavsiya etiladi.</p>
+  {{else}}<p class="muted">Muammoli jihoz yo'q.</p>{{/if}}
+</section>

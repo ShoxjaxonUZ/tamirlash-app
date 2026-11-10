@@ -1,0 +1,25 @@
+<div class="page-head">
+  <h1>Binolar va xonalar</h1>
+  <a class="btn btn-primary" href="/admin/binolar/yangi">{{> icon name="plus"}}Yangi bino</a>
+</div>
+
+{{#if binolar.length}}
+<div class="tiles">
+  {{#each binolar}}
+  <a class="tile" href="/admin/binolar/{{id}}">
+    <strong>{{nomi}}</strong>
+    {{#if manzil}}<span class="muted small">{{manzil}}</span>{{/if}}
+    <div class="tile-nums">
+      <span><b>{{qavatlar_soni}}</b> qavat</span>
+      <span><b>{{xonalar}}</b> xona</span>
+      <span><b>{{jihozlar}}</b> jihoz</span>
+      <span class="{{#if ochiq}}text-accent{{/if}}"><b>{{ochiq}}</b> ochiq ariza</span>
+    </div>
+  </a>
+  {{/each}}
+</div>
+{{else}}
+  {{> bosh matn="Hali bino kiritilmagan. Avval binoni, keyin uning xonalari va jihozlarini qo'shing."}}
+{{/if}}
+
+<p class="muted small">Jihozlarni ko'p miqdorda kiritish uchun <a href="/admin/jihozlar/import">Excel dan yuklash</a> qulay.</p>

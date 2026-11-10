@@ -1,0 +1,24 @@
+<div class="page-head"><h1>{{title}}</h1></div>
+{{> errors}}
+<form method="post" action="{{#if xona.id}}/admin/xonalar/{{xona.id}}{{else}}/admin/xonalar{{/if}}" class="card stack narrow">
+  {{> csrf}}
+  <label class="field"><span>Bino</span>
+    <select name="bino_id" required>
+      <option value="">— tanlang —</option>
+      {{#each binolar}}<option value="{{id}}" {{#if (eq id @root.xona.bino_id)}}selected{{/if}}>{{nomi}} ({{qavatlar_soni}} qavat)</option>{{/each}}
+    </select>
+  </label>
+  <div class="grid-2 tight">
+    <label class="field"><span>Qavat</span><input name="qavat" type="number" min="-5" max="50" value="{{xona.qavat}}" required></label>
+    <label class="field"><span>Xona raqami</span><input name="raqam" value="{{xona.raqam}}" maxlength="20" required placeholder="101"></label>
+  </div>
+  <label class="field"><span>Turi</span>
+    <select name="turi">{{#each xonaTurlari}}<option value="{{kalit}}" {{#if (eq kalit @root.xona.turi)}}selected{{/if}}>{{nomi}}</option>{{/each}}</select>
+  </label>
+  {{#if xona.id}}<label class="check"><input type="checkbox" name="faol" {{#if xona.faol}}checked{{/if}}> Faol (ariza berish mumkin)</label>{{/if}}
+  <div class="row">
+    <button class="btn btn-primary" type="submit">Saqlash</button>
+    {{#unless xona.id}}<button class="btn" type="submit" name="yana" value="1">Saqlash va yana qo'shish</button>{{/unless}}
+    <a class="btn btn-ghost" href="{{#if xona.id}}/xonalar/{{xona.id}}{{else}}/admin/binolar{{/if}}">Bekor qilish</a>
+  </div>
+</form>

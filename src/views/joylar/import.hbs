@@ -1,0 +1,35 @@
+<div class="page-head">
+  <div><a class="back" href="/admin/jihozlar">← Jihozlar</a><h1>Jihozlarni Excel dan yuklash</h1></div>
+</div>
+
+{{> errors}}
+{{#if qatorXatolari}}
+<div class="alert alert-xato" role="alert">
+  <strong>Faylda {{xatoSoni}} ta xato topildi — hech narsa saqlanmadi.</strong> Tuzatib, qayta yuklang.
+  <ul>{{#each qatorXatolari}}<li>{{qator}}-qator: {{xato}}</li>{{/each}}</ul>
+  {{#if (gt xatoSoni 50)}}<p>Dastlabki 50 tasi ko'rsatildi.</p>{{/if}}
+</div>
+{{/if}}
+
+<div class="grid-2">
+  <section class="card">
+    <h2>1. Namunani yuklab oling</h2>
+    <p>Ustunlar: <b>Bino | Qavat | Xona | Jihoz turi | Belgisi | Inventar raqami</b>.</p>
+    <ul class="muted small">
+      <li>Bino va jihoz turi tizimdagi nomga mos bo'lsin (namunadagi "Ma'lumotnoma" varag'ida ro'yxat bor).</li>
+      <li>Bazada yo'q xona avtomatik yaratiladi — buning uchun qavat ko'rsatilsin.</li>
+      <li>Inventar raqami ixtiyoriy, lekin takrorlanmasin.</li>
+      <li>Bir martada 2000 tagacha qator. Bitta xato bo'lsa ham hech narsa saqlanmaydi.</li>
+    </ul>
+    <a class="btn btn-ghost" href="/admin/jihozlar/namuna.xlsx">{{> icon name="download"}}Namuna (.xlsx)</a>
+  </section>
+  <section class="card">
+    <h2>2. To'ldirilgan faylni yuklang</h2>
+    <form method="post" action="/admin/jihozlar/import" enctype="multipart/form-data" class="stack">
+      {{> csrf}}
+      <label class="upload">{{> icon name="download"}}<span>.xlsx faylni tanlang (2 MB gacha)</span>
+        <input type="file" name="fayl" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required></label>
+      <div><button class="btn btn-primary" type="submit">Yuklash</button></div>
+    </form>
+  </section>
+</div>

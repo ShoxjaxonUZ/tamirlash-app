@@ -1,0 +1,34 @@
+<div class="page-head">
+  <h1>Ustalar</h1>
+  {{#if adminmi}}<a class="btn btn-ghost" href="/admin/foydalanuvchilar/yangi">{{> icon name="plus"}}Usta qo'shish</a>{{/if}}
+</div>
+<p class="muted">Mutaxassislik biriktirishda qaysi ustalar birinchi taklif qilinishini belgilaydi.</p>
+
+{{#if rows.length}}
+<div class="usta-grid">
+  {{#each rows}}
+  <section class="card">
+    <div class="usta-head">
+      <span class="avatar">{{bosh this}}</span>
+      <div><strong>{{familiya}} {{ism}}</strong>{{#if telefon}}<br><a class="small" href="tel:{{telefon}}">{{telefon}}</a>{{/if}}</div>
+    </div>
+    <div class="mini-stats">
+      <a href="/boshqaruv?usta={{id}}"><b>{{faol}}</b><span>faol</span></a>
+      <a class="{{#if kechikkan}}text-late{{/if}}" href="/boshqaruv?usta={{id}}&kechikkan=1"><b>{{kechikkan}}</b><span>kechikkan</span></a>
+      <a href="/boshqaruv?usta={{id}}&holat=tekshiruvda"><b>{{tekshiruvda}}</b><span>tekshiruvda</span></a>
+      <span><b>{{bajarilgan}}</b><span>30 kunda</span></span>
+      <span><b>{{default baho "—"}}</b><span>baho</span></span>
+    </div>
+    <form method="post" action="/admin/ustalar/{{id}}" class="stack-tight">
+      {{> csrf}}
+      <div class="checks">
+        {{#each @root.mutaxassisliklar}}<label class="check"><input type="checkbox" name="mutaxassisliklar" value="{{kalit}}" {{#if (includes ../mutaxassisliklar kalit)}}checked{{/if}}> {{nomi}}</label>{{/each}}
+      </div>
+      <div><button class="btn btn-ghost btn-sm" type="submit">Saqlash</button></div>
+    </form>
+  </section>
+  {{/each}}
+</div>
+{{else}}
+  {{> bosh matn="Tizimda faol usta yo'q. Administrator foydalanuvchi qo'shib, unga «Usta» rolini beradi."}}
+{{/if}}

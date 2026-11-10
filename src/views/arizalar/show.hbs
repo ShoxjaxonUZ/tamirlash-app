@@ -1,0 +1,219 @@
+<div class="page-head">
+  <div>
+    <h1>{{a.raqam}}</h1>
+    <div class="badges">
+      {{> holat h=a.holat}}
+      {{> muhimlik m=a.muhimlik}}
+      {{#if (kechikkanmi a.muddat a.holat)}}<span class="badge badge-late">Kechikkan</span>{{/if}}
+      {{#if a.almashtirish_kerak}}<span class="badge badge-warn">Almashtirish kerak</span>{{/if}}
+    </div>
+  </div>
+</div>
+
+<div class="layout-2">
+  <div class="main-col">
+    <section class="card">
+      <h2 class="h-lg">{{jihozNomi a}}</h2>
+      <p class="place-line">{{> icon name="pin"}}<span>{{a.bino}} · {{a.qavat}}-qavat · {{a.xona}}-xona{{#if a.joy_izohi}} — {{a.joy_izohi}}{{/if}}</span></p>
+      <p class="desc">{{a.tavsif}}</p>
+      {{#if rasmlarAriza.length}}
+      <div class="gallery">{{#each rasmlarAriza}}<a href="/rasmlar/{{id}}" target="_blank" rel="noopener"><img src="/rasmlar/{{id}}" alt="Ariza rasmi {{inc @index}}" loading="lazy"></a>{{/each}}</div>
+      {{/if}}
+      {{#if a.almashtirish_kerak}}<div class="alert alert-warn"><strong>Usta: jihozni almashtirish kerak.</strong> {{a.almashtirish_sababi}}</div>{{/if}}
+      {{#if (eq a.holat "rad_etilgan")}}
+      <div class="alert alert-muted">{{a.rad_sababi}}{{#if a.asosiy_raqam}} — asosiy ariza: <a href="/arizalar/{{a.birlashtirilgan_id}}">{{a.asosiy_raqam}}</a>{{/if}}</div>
+      {{/if}}
+      {{#if rasmlarBajarildi.length}}
+      <h3>Ta'mirdan keyin</h3>
+      <div class="gallery">{{#each rasmlarBajarildi}}<a href="/rasmlar/{{id}}" target="_blank" rel="noopener"><img src="/rasmlar/{{id}}" alt="Natija rasmi {{inc @index}}" loading="lazy"></a>{{/each}}</div>
+      {{/if}}
+      {{#if a.baho}}<p class="rating"><span class="stars" aria-label="{{a.baho}} / 5">{{yulduz a.baho}}</span>{{#if a.baho_izohi}} <span>{{a.baho_izohi}}</span>{{/if}}</p>{{/if}}
+    </section>
+
+    {{#if amallar.egasi}}
+    <section class="card panel panel-accent">
+      {{#if amallar.tasdiqlash}}
+        <h2>Usta ishni bajardi</h2>
+        <p>Iltimos, tekshiring: jihoz endi ishlayaptimi?</p>
+        <div class="row">
+          <form method="post" action="/arizalar/{{a.id}}/tasdiqlash">{{> csrf}}<button class="btn btn-success" type="submit">Ha, ishlayapti</button></form>
+        </div>
+        <details class="more">
+          <summary>Yo'q, hali ham buzuq</summary>
+          <form method="post" action="/arizalar/{{a.id}}/qayta-ochish" class="stack">
+            {{> csrf}}
+            <label class="field"><span>Nima hali ham ishlamayapti?</span><textarea name="izoh" rows="2" maxlength="500" required></textarea></label>
+            <div><button class="btn btn-danger" type="submit">Ustaga qaytarish</button></div>
+          </form>
+        </details>
+        <p class="muted small">3 kun ichida javob bo'lmasa, ariza avtomatik yopiladi.</p>
+      {{/if}}
+      {{#if amallar.baho}}
+        <h2>Ta'mirni baholang</h2>
+        <form method="post" action="/arizalar/{{a.id}}/baho" class="stack">
+          {{> csrf}}
+          <div class="stars-input" role="radiogroup" aria-label="Baho, 1 dan 5 gacha">
+            {{#each (range 1 5)}}<label><input type="radio" name="baho" value="{{this}}" required><span>{{this}}</span></label>{{/each}}
+          </div>
+          <label class="field"><span>Izoh <em>(ixtiyoriy)</em></span><input name="izoh" maxlength="500"></label>
+          <div><button class="btn btn-primary" type="submit">Yuborish</button></div>
+        </form>
+      {{/if}}
+      {{#if amallar.bekor}}
+        <h2>Ariza qabul qilindi</h2>
+        <p class="muted">Xo'jalik bo'limi uni ustaga biriktiradi. Xato yuborgan bo'lsangiz, bekor qilishingiz mumkin.</p>
+        <form method="post" action="/arizalar/{{a.id}}/bekor" data-tasdiq="Arizani bekor qilasizmi?">{{> csrf}}<button class="btn btn-ghost" type="submit">Arizani bekor qilish</button></form>
+      {{/if}}
+    </section>
+    {{/if}}
+
+    {{#if amallar.usta}}
+    <section class="card panel">
+      <h2>Usta amallari</h2>
+      {{#if amallar.boshlash}}
+        <form method="post" action="/arizalar/{{a.id}}/boshlash">{{> csrf}}<button class="btn btn-primary" type="submit">Ishni boshladim</button></form>
+      {{/if}}
+      {{#if amallar.davom}}
+        <form method="post" action="/arizalar/{{a.id}}/davom">{{> csrf}}<button class="btn btn-primary" type="submit">Qism keldi — ishni davom ettiraman</button></form>
+      {{/if}}
+      {{#if amallar.bajarildi}}
+        <form method="post" action="/arizalar/{{a.id}}/bajarildi" enctype="multipart/form-data" class="stack">
+          {{> csrf}}
+          <label class="field"><span>Nima qilindi?</span>
+            <textarea name="izoh" rows="3" maxlength="1000" required placeholder="Masalan: quvvat bloki almashtirildi, kompyuter ishlayapti"></textarea></label>
+          <label class="upload">{{> icon name="camera"}}<span>Natija rasmi <em>(ixtiyoriy)</em></span>
+            <input type="file" name="rasmlar" accept="image/jpeg,image/png" multiple data-max="{{maxRasm}}"></label>
+          <div class="previews" data-previews></div>
+          <div><button class="btn btn-success" type="submit">Bajarildi</button></div>
+        </form>
+      {{/if}}
+      {{#if amallar.qism}}
+        <details class="more">
+          <summary>Ehtiyot qism kutilmoqda</summary>
+          <form method="post" action="/arizalar/{{a.id}}/qism-kutish" class="stack">
+            {{> csrf}}
+            <label class="field"><span>Qanday qism kerak?</span><input name="izoh" maxlength="500" required placeholder="Masalan: 450W quvvat bloki"></label>
+            <div><button class="btn" type="submit">Saqlash</button></div>
+          </form>
+        </details>
+      {{/if}}
+      {{#if amallar.almashtirish}}
+        <details class="more">
+          <summary>Tuzatib bo'lmaydi — almashtirish kerak</summary>
+          <form method="post" action="/arizalar/{{a.id}}/almashtirish" class="stack">
+            {{> csrf}}
+            <label class="field"><span>Sababi</span><textarea name="izoh" rows="2" maxlength="500" required placeholder="Masalan: ona plata kuygan, ta'mirlash narxi yangisidan qimmat"></textarea></label>
+            <div><button class="btn btn-warn" type="submit">Boshliqqa xabar berish</button></div>
+          </form>
+        </details>
+      {{/if}}
+    </section>
+    {{/if}}
+
+    {{#if (or amallar.biriktirish amallar.yopish)}}
+    <section class="card panel">
+      <h2>Boshqaruv</h2>
+      {{#if amallar.biriktirish}}
+      <form method="post" action="/arizalar/{{a.id}}/biriktirish" class="stack">
+        {{> csrf}}
+        <label class="field"><span>Usta</span>
+          <select name="usta_id" required>
+            <option value="">— tanlang —</option>
+            {{#if mosUstalar.length}}<optgroup label="Mutaxassisligi mos">{{#each mosUstalar}}<option value="{{id}}" {{#if (eq id @root.a.usta_id)}}selected{{/if}}>{{familiya}} {{ism}} — {{faol_ishlar}} ta faol ish</option>{{/each}}</optgroup>{{/if}}
+            {{#if boshqaUstalar.length}}<optgroup label="Boshqa ustalar">{{#each boshqaUstalar}}<option value="{{id}}" {{#if (eq id @root.a.usta_id)}}selected{{/if}}>{{familiya}} {{ism}} — {{faol_ishlar}} ta faol ish</option>{{/each}}</optgroup>{{/if}}
+          </select>
+          {{#unless (or mosUstalar.length boshqaUstalar.length)}}<small class="hint text-late">Tizimda faol usta yo'q — administrator usta qo'shishi kerak.</small>{{/unless}}
+        </label>
+        <div class="grid-2 tight">
+          <label class="field"><span>Muhimlik</span>
+            <select name="muhimlik">{{#each muhimliklar}}<option value="{{kalit}}" {{#if (eq kalit @root.a.muhimlik)}}selected{{/if}}>{{nomi}} ({{muddat}})</option>{{/each}}</select>
+          </label>
+          <label class="field"><span>Yangi muddat <em>(ixtiyoriy)</em></span>
+            <input type="datetime-local" name="muddat" min="{{minMuddat}}">
+            <small class="hint">Hozirgi: {{vaqt a.muddat}}</small>
+          </label>
+        </div>
+        <div><button class="btn btn-primary" type="submit">{{#if a.usta_id}}Saqlash{{else}}Ustaga biriktirish{{/if}}</button></div>
+      </form>
+
+      {{#if boshqalar.length}}
+      <details class="more">
+        <summary>Dublikat — boshqa ariza bilan birlashtirish</summary>
+        <form method="post" action="/arizalar/{{a.id}}/birlashtirish" class="stack">
+          {{> csrf}}
+          <label class="field"><span>Shu xonadagi asosiy ariza</span>
+            <select name="asosiy_id" required>
+              {{#each boshqalar}}<option value="{{id}}">{{raqam}} · {{tur}} {{jihoz}} · {{holat holat}} — {{qisqa tavsif 60}}</option>{{/each}}
+            </select>
+          </label>
+          <p class="muted small">Bu ariza yopiladi, uning egasi asosiy arizani kuzatadi va holati haqida xabar oladi.</p>
+          <div><button class="btn" type="submit">Birlashtirish</button></div>
+        </form>
+      </details>
+      {{/if}}
+
+      <details class="more">
+        <summary>Rad etish</summary>
+        <form method="post" action="/arizalar/{{a.id}}/rad-etish" class="stack">
+          {{> csrf}}
+          <label class="field"><span>Sabab</span><input name="izoh" maxlength="500" required placeholder="Masalan: soxta ariza, bu jihoz xo'jalik bo'limiga tegishli emas"></label>
+          <div><button class="btn btn-danger" type="submit">Rad etish</button></div>
+        </form>
+      </details>
+      {{/if}}
+
+      {{#if amallar.yopish}}
+      <form method="post" action="/arizalar/{{a.id}}/yopish" class="stack">
+        {{> csrf}}
+        <p class="muted small">Usta jihozni almashtirish kerak deb belgilagan. Yangi jihoz buyurtma qilingach yoki qaror qabul qilingach, arizani yoping.</p>
+        <label class="field"><span>Izoh <em>(ixtiyoriy)</em></span><input name="izoh" maxlength="500" placeholder="Masalan: yangi kompyuter buyurtma qilindi"></label>
+        {{#if a.jihoz_id}}<label class="check"><input type="checkbox" name="hisobdan"> Eski jihozni hisobdan chiqarish</label>{{/if}}
+        <div><button class="btn" type="submit">Arizani yopish</button></div>
+      </form>
+      {{/if}}
+    </section>
+    {{/if}}
+
+
+    <section class="card">
+      <h2>Tarix</h2>
+      <ol class="timeline">
+        {{#each tarix}}
+        <li>
+          <span class="tl-dot dot-{{yangi_holat}}" aria-hidden="true"></span>
+          <div>
+            <strong>{{amal amal}}</strong>
+            {{#if eski_holat}}{{#if (ne eski_holat yangi_holat)}}<span class="muted small">{{holat eski_holat}} → {{holat yangi_holat}}</span>{{/if}}{{/if}}
+            <div class="muted small">{{vaqt vaqt}} · {{#if familiya}}{{familiya}} {{ism}}{{else}}Tizim{{/if}}</div>
+            {{#if izoh}}<p class="tl-note">{{izoh}}</p>{{/if}}
+          </div>
+        </li>
+        {{/each}}
+      </ol>
+    </section>
+  </div>
+
+  <aside class="side-col">
+    <section class="card">
+      <dl class="kv kv-stack">
+        <dt>Muddat</dt>
+        <dd>{{vaqt a.muddat}}{{#if (ishdami a.holat)}}<br><small class="{{#if (kechikkanmi a.muddat a.holat)}}text-late{{else}}muted{{/if}}">{{nisbiy a.muddat}}</small>{{/if}}</dd>
+        <dt>Usta</dt>
+        <dd>{{#if a.usta_id}}{{a.usta_familiya}} {{a.usta_ism}}{{#if a.usta_telefon}}<br><a href="tel:{{a.usta_telefon}}">{{a.usta_telefon}}</a>{{/if}}{{else}}<span class="muted">Hali biriktirilmagan</span>{{/if}}</dd>
+        <dt>Ariza bergan</dt>
+        <dd>{{a.egasi_familiya}} {{a.egasi_ism}}{{#if a.egasi_toifa}} <small class="muted">· {{toifa a.egasi_toifa}}</small>{{/if}}
+          {{#if (or r.boshqaruv r.usta)}}{{#if a.egasi_telefon}}<br><a href="tel:{{a.egasi_telefon}}">{{a.egasi_telefon}}</a>{{/if}}{{/if}}</dd>
+        <dt>Xabar berganlar</dt><dd>{{inc a.kuzatuvchilar}} kishi</dd>
+        <dt>Yaratilgan</dt><dd>{{vaqt a.yaratilgan}}</dd>
+        {{#if a.yopilgan}}<dt>Yopilgan</dt><dd>{{vaqt a.yopilgan}}</dd>{{/if}}
+        {{#if a.inventar_raqami}}<dt>Inventar raqami</dt><dd>{{a.inventar_raqami}}</dd>{{/if}}
+      </dl>
+      {{#if r.boshqaruv}}
+      <div class="links">
+        <a href="/xonalar/{{a.xona_id}}">Xona kartochkasi →</a>
+        {{#if a.jihoz_id}}<a href="/jihozlar/{{a.jihoz_id}}">Jihozning ta'mir tarixi →</a>{{/if}}
+      </div>
+      {{/if}}
+    </section>
+  </aside>
+</div>

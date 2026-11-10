@@ -1,0 +1,64 @@
+<div class="page-head">
+  <div>
+    <a class="back" href="/admin/binolar/{{xona.bino_id}}">← {{xona.bino}}</a>
+    <h1>{{xona.raqam}}-xona</h1>
+    <p class="muted">{{xona.bino}} · {{xona.qavat}}-qavat · {{xonaTuri xona.turi}}{{#unless xona.faol}} · <b>nofaol</b>{{/unless}}</p>
+  </div>
+  <div class="row">
+    <a class="btn btn-primary" href="/admin/jihozlar/yangi?xona={{xona.id}}">{{> icon name="plus"}}Jihoz qo'shish</a>
+    <a class="btn btn-ghost" href="/arizalar/yangi?xona={{xona.id}}">Ariza berish</a>
+    <a class="btn btn-ghost" href="/admin/xonalar/{{xona.id}}/tahrir">Tahrirlash</a>
+  </div>
+</div>
+
+<div class="layout-2">
+  <div class="main-col">
+    <section class="card">
+      <h2>Jihozlar <span class="muted">({{jihozlar.length}})</span></h2>
+      {{#if jihozlar.length}}
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Jihoz</th><th>Inventar</th><th>Holati</th></tr></thead>
+          <tbody>
+            {{#each jihozlar}}
+            <tr class="{{#unless faol}}is-off{{/unless}}">
+              <td><a href="/jihozlar/{{id}}">{{tur}} {{belgi}}</a></td>
+              <td>{{default inventar_raqami "—"}}</td>
+              <td>
+                {{#unless faol}}<span class="badge">Hisobdan chiqarilgan</span>{{/unless}}
+                {{#if ochiq}}<span class="badge holat-jarayonda">Ta'mirda</span>{{else}}{{#if faol}}<span class="badge holat-yopilgan">Ishlaydi</span>{{/if}}{{/if}}
+                {{#if (gt soni90 2)}}<span class="badge badge-warn" title="90 kunda {{soni90}} marta buzilgan">Muammoli</span>{{/if}}
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+      {{else}}
+        <p class="muted">Jihozlar kiritilmagan. Ariza berishda foydalanuvchi faqat jihoz turini tanlaydi.</p>
+      {{/if}}
+    </section>
+
+    <section>
+      <div class="section-head"><h2>Arizalar</h2></div>
+      {{#if arizalar.length}}
+        <div class="list">{{#each arizalar}}{{> ariza-row}}{{/each}}</div>
+      {{else}}
+        {{> bosh matn="Bu xonadan ariza tushmagan."}}
+      {{/if}}
+    </section>
+  </div>
+
+  <aside class="side-col">
+    <section class="card qr-card">
+      <h2>QR-kod</h2>
+      <div class="qr">{{{svg}}}</div>
+      <p class="small muted break">{{qrManzil}}</p>
+      <div class="stack-tight">
+        <a class="btn btn-ghost btn-sm" href="/xonalar/{{xona.id}}/qr.svg">{{> icon name="download"}}SVG yuklab olish</a>
+        <a class="btn btn-ghost btn-sm" href="/admin/binolar/{{xona.bino_id}}/qr" target="_blank" rel="noopener">Binoning barcha QR-kodlari</a>
+        <form method="post" action="/admin/xonalar/{{xona.id}}/qr-yangilash" data-tasdiq="Yangi QR-kod yaratilsinmi? Eskisi ishlamay qoladi.">{{> csrf}}<button class="btn btn-ghost btn-sm" type="submit">Yangi QR-kod yaratish</button></form>
+      </div>
+    </section>
+  </aside>
+</div>

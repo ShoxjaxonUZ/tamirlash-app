@@ -1,0 +1,42 @@
+<div class="page-head">
+  <h1>Foydalanuvchilar</h1>
+  <a class="btn btn-primary" href="/admin/foydalanuvchilar/yangi">{{> icon name="plus"}}Yangi foydalanuvchi</a>
+</div>
+
+<form method="get" action="/admin/foydalanuvchilar" class="card filters" data-avto-yubor>
+  <label class="field"><span>Rol</span>
+    <select name="rol"><option value="">Barchasi</option>{{#each rollar}}<option value="{{kalit}}" {{#if (eq kalit @root.filtr.rol)}}selected{{/if}}>{{nomi}}</option>{{/each}}</select>
+  </label>
+  <label class="field"><span>Holat</span>
+    <select name="holat">
+      <option value="">Barchasi</option>
+      <option value="faol" {{#if (eq filtr.holat "faol")}}selected{{/if}}>Faol</option>
+      <option value="bloklangan" {{#if (eq filtr.holat "bloklangan")}}selected{{/if}}>Bloklangan</option>
+    </select>
+  </label>
+  <label class="field field-grow"><span>Qidirish</span><input name="q" value="{{filtr.q}}" placeholder="Ism, familiya, login yoki telefon"></label>
+  <div class="filters-actions"><button class="btn btn-primary" type="submit">Ko'rsatish</button></div>
+</form>
+
+{{#if rows.length}}
+<div class="card table-wrap">
+  <table class="table">
+    <thead><tr><th>F.I.Sh.</th><th>Login</th><th>Rol</th><th>Telefon</th><th>Holat</th><th></th></tr></thead>
+    <tbody>
+      {{#each rows}}
+      <tr class="{{#unless faol}}is-off{{/unless}}">
+        <td>{{familiya}} {{ism}}{{#if toifa}} <small class="muted">· {{toifa toifa}}</small>{{/if}}</td>
+        <td>{{login}}</td>
+        <td>{{rol rol}}{{#if mutaxassisliklar.length}}<br><small class="muted">{{#each mutaxassisliklar}}{{mutaxassislik this}}{{#unless @last}}, {{/unless}}{{/each}}</small>{{/if}}</td>
+        <td>{{default telefon "—"}}</td>
+        <td>{{#if faol}}<span class="badge holat-yopilgan">Faol</span>{{else}}<span class="badge holat-rad_etilgan">Bloklangan</span>{{/if}}{{#if parol_almashtirish}} <small class="muted">vaqtinchalik parol</small>{{/if}}</td>
+        <td><a class="btn btn-ghost btn-sm" href="/admin/foydalanuvchilar/{{id}}/tahrir">Tahrirlash</a></td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>
+{{> pager base="/admin/foydalanuvchilar"}}
+{{else}}
+  {{> bosh matn="Foydalanuvchi topilmadi."}}
+{{/if}}

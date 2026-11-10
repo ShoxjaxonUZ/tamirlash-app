@@ -1,0 +1,34 @@
+<div class="page-head">
+  <div><a class="back" href="/admin/jihozlar">← Jihozlar</a><h1>Jihoz turlari</h1></div>
+</div>
+<p class="muted">Mutaxassislik ariza qaysi ustaga mos kelishini belgilaydi: biriktirishda mos ustalar birinchi ko'rsatiladi.</p>
+
+<section class="card">
+  <h2>Yangi tur</h2>
+  <form method="post" action="/admin/turlar" class="inline-form">
+    {{> csrf}}
+    <label class="field field-grow"><span>Nomi</span><input name="nomi" maxlength="60" required></label>
+    <label class="field"><span>Mutaxassislik</span><select name="mutaxassislik">{{#each mutaxassisliklar}}<option value="{{kalit}}">{{nomi}}</option>{{/each}}</select></label>
+    <label class="field field-sm"><span>Tartib</span><input name="tartib" type="number" min="0" max="9999" value="100"></label>
+    <button class="btn btn-primary" type="submit">Qo'shish</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Mavjud turlar</h2>
+  <ul class="edit-list">
+    {{#each turlar}}
+    <li>
+      <form method="post" action="/admin/turlar/{{id}}" class="inline-form">
+        {{> csrf}}
+        <label class="field field-grow"><span>Nomi</span><input name="nomi" value="{{nomi}}" maxlength="60" required></label>
+        <label class="field"><span>Mutaxassislik</span>
+          <select name="mutaxassislik">{{#each @root.mutaxassisliklar}}<option value="{{kalit}}" {{#if (eq kalit ../mutaxassislik)}}selected{{/if}}>{{nomi}}</option>{{/each}}</select></label>
+        <label class="field field-sm"><span>Tartib</span><input name="tartib" type="number" min="0" max="9999" value="{{tartib}}"></label>
+        <button class="btn btn-ghost" type="submit">Saqlash</button>
+        <span class="muted small">{{jihozlar}} jihoz · {{arizalar}} ariza</span>
+      </form>
+    </li>
+    {{/each}}
+  </ul>
+</section>

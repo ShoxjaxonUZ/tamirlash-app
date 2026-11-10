@@ -1,0 +1,47 @@
+<div class="page-head">
+  <div><a class="back" href="/admin/foydalanuvchilar">← Foydalanuvchilar</a><h1>{{title}}</h1></div>
+</div>
+{{> errors}}
+<form method="post" action="{{#if u.id}}/admin/foydalanuvchilar/{{u.id}}{{else}}/admin/foydalanuvchilar{{/if}}" class="card stack narrow" data-rol-forma>
+  {{> csrf}}
+  <div class="grid-2 tight">
+    <label class="field"><span>Familiya</span><input name="familiya" value="{{u.familiya}}" maxlength="60" required></label>
+    <label class="field"><span>Ism</span><input name="ism" value="{{u.ism}}" maxlength="60" required></label>
+  </div>
+  <div class="grid-2 tight">
+    <label class="field"><span>Login</span><input name="login" value="{{u.login}}" maxlength="40" required autocomplete="off" autocapitalize="none" spellcheck="false">
+      <small class="hint">Lotin harflari, raqam, nuqta, chiziqcha</small></label>
+    <label class="field"><span>Telefon <em>(ixtiyoriy)</em></span><input name="telefon" value="{{u.telefon}}" inputmode="tel" placeholder="+998 90 123 45 67"></label>
+  </div>
+  <div class="grid-2 tight">
+    <label class="field"><span>Rol</span>
+      <select name="rol" data-rol {{#if ozimi}}disabled{{/if}}>{{#each rollar}}<option value="{{kalit}}" {{#if (eq kalit @root.u.rol)}}selected{{/if}}>{{nomi}}</option>{{/each}}</select>
+      {{#if ozimi}}<input type="hidden" name="rol" value="{{u.rol}}"><small class="hint">O'z rolingizni o'zgartira olmaysiz</small>{{/if}}
+    </label>
+    <label class="field"><span>Toifa</span>
+      <select name="toifa"><option value="">—</option>{{#each toifalar}}<option value="{{kalit}}" {{#if (eq kalit @root.u.toifa)}}selected{{/if}}>{{nomi}}</option>{{/each}}</select>
+    </label>
+  </div>
+
+  <fieldset class="field" data-usta-maydon>
+    <legend>Mutaxassislik <em>(usta uchun)</em></legend>
+    <div class="checks">
+      {{#each mutaxassisliklar}}<label class="check"><input type="checkbox" name="mutaxassisliklar" value="{{kalit}}" {{#if (includes @root.u.mutaxassisliklar kalit)}}checked{{/if}}> {{nomi}}</label>{{/each}}
+    </div>
+  </fieldset>
+
+  <label class="field"><span>{{#if u.id}}Yangi parol <em>(o'zgartirmaslik uchun bo'sh qoldiring)</em>{{else}}Vaqtinchalik parol{{/if}}</span>
+    <input name="parol" type="password" autocomplete="new-password" minlength="8" {{#unless u.id}}required{{/unless}}>
+    <small class="hint">Kamida 8 belgi. Foydalanuvchi birinchi kirishda uni almashtiradi.</small>
+  </label>
+
+  {{#if u.id}}
+  <label class="check"><input type="checkbox" name="faol" {{#if u.faol}}checked{{/if}} {{#if ozimi}}disabled{{/if}}> Faol (belgilanmasa — bloklangan, tizimga kira olmaydi)</label>
+  {{#if ozimi}}<input type="hidden" name="faol" value="on">{{/if}}
+  {{/if}}
+
+  <div class="row">
+    <button class="btn btn-primary" type="submit">Saqlash</button>
+    <a class="btn btn-ghost" href="/admin/foydalanuvchilar">Bekor qilish</a>
+  </div>
+</form>

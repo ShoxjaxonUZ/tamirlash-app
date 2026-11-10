@@ -1,0 +1,45 @@
+<div class="page-head">
+  <h1>Boshqaruv</h1>
+  <a class="btn btn-ghost" href="/hisobotlar">Hisobotlar →</a>
+</div>
+
+<form method="get" action="/boshqaruv" class="card filters" data-avto-yubor>
+  <label class="field"><span>Holat</span>
+    <select name="holat">
+      <option value="ochiq" {{#if (eq filtr.holat "ochiq")}}selected{{/if}}>Ochiq (hammasi)</option>
+      {{#each holatlar}}<option value="{{kalit}}" {{#if (eq kalit @root.filtr.holat)}}selected{{/if}}>{{nomi}}</option>{{/each}}
+      <option value="hammasi" {{#if (eq filtr.holat "hammasi")}}selected{{/if}}>Barchasi</option>
+    </select>
+  </label>
+  <label class="field"><span>Bino</span>
+    <select name="bino"><option value="">Barchasi</option>{{#each binolar}}<option value="{{id}}" {{#if (eq id @root.filtr.bino)}}selected{{/if}}>{{nomi}}</option>{{/each}}</select>
+  </label>
+  <label class="field"><span>Jihoz turi</span>
+    <select name="tur"><option value="">Barchasi</option>{{#each turlar}}<option value="{{id}}" {{#if (eq id @root.filtr.tur)}}selected{{/if}}>{{nomi}}</option>{{/each}}</select>
+  </label>
+  <label class="field"><span>Muhimlik</span>
+    <select name="muhimlik"><option value="">Barchasi</option>{{#each muhimliklar}}<option value="{{kalit}}" {{#if (eq kalit @root.filtr.muhimlik)}}selected{{/if}}>{{nomi}}</option>{{/each}}</select>
+  </label>
+  <label class="field"><span>Usta</span>
+    <select name="usta">
+      <option value="">Barchasi</option>
+      <option value="yoq" {{#if (eq filtr.usta "yoq")}}selected{{/if}}>Biriktirilmagan</option>
+      {{#each ustalar}}<option value="{{id}}" {{#if (eq id @root.filtr.usta)}}selected{{/if}}>{{familiya}} {{ism}}</option>{{/each}}
+    </select>
+  </label>
+  <label class="field field-grow"><span>Qidirish</span><input name="q" value="{{filtr.q}}" placeholder="Raqam, xona yoki tavsif"></label>
+  <label class="check"><input type="checkbox" name="kechikkan" value="1" {{#if filtr.kechikkan}}checked{{/if}}> Faqat kechikkanlar</label>
+  <div class="filters-actions">
+    <button class="btn btn-primary" type="submit">Ko'rsatish</button>
+    {{#if filtrBor}}<a class="btn btn-ghost" href="/boshqaruv">Tozalash</a>{{/if}}
+  </div>
+</form>
+
+<p class="muted small">Topildi: {{jami}} ta. Kechikkanlar va muhimroqlari birinchi.</p>
+
+{{#if rows.length}}
+  <div class="list">{{#each rows}}{{> ariza-row}}{{/each}}</div>
+  {{> pager base="/boshqaruv"}}
+{{else}}
+  {{> bosh matn="Bu filtr bo'yicha ariza topilmadi."}}
+{{/if}}

@@ -1,0 +1,44 @@
+# Render Blueprint: Dashboard → New → Blueprint → shu repozitoriyni tanlang.
+# Baza va web-xizmat birga yaratiladi; "sync: false" qiymatlarini Render o'zi so'raydi.
+databases:
+  - name: tamirlash-db
+    plan: free
+    region: frankfurt
+    databaseName: tamirlash
+
+services:
+  - type: web
+    name: tamirlash
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci --omit=dev
+    startCommand: npm run migrate && npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tamirlash-db
+          property: connectionString
+      - key: DB_SSL
+        value: "true"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_LOGIN
+        value: admin
+      - key: ADMIN_PAROL
+        sync: false
+      # Masalan: https://tamirlash.onrender.com — QR-kodlar va Telegram havolalari shu manzilga olib boradi
+      - key: APP_URL
+        sync: false
+      - key: ISH_KUNLARI
+        value: "1,2,3,4,5"
+      # Telegram (ixtiyoriy): token @BotFather dan; keyin bir marta `npm run tg:webhook` (Render Shell)
+      - key: TG_BOT_TOKEN
+        sync: false
+      - key: TG_BOT_USERNAME
+        sync: false
+      - key: TG_WEBHOOK_SECRET
+        generateValue: true

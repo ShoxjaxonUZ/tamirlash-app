@@ -1,0 +1,12 @@
+<div class="page-head"><h1>{{title}}</h1></div>
+{{> errors}}
+<form method="post" action="{{#if bino.id}}/admin/binolar/{{bino.id}}{{else}}/admin/binolar{{/if}}" class="card stack narrow">
+  {{> csrf}}
+  <label class="field"><span>Bino nomi</span><input name="nomi" value="{{bino.nomi}}" maxlength="60" required placeholder="Masalan: A bino"></label>
+  <label class="field"><span>Manzil <em>(ixtiyoriy)</em></span><input name="manzil" value="{{bino.manzil}}" maxlength="200"></label>
+  <label class="field"><span>Qavatlar soni</span><input name="qavatlar_soni" type="number" min="1" max="50" value="{{bino.qavatlar_soni}}" required></label>
+  <div class="row">
+    <button class="btn btn-primary" type="submit">Saqlash</button>
+    <a class="btn btn-ghost" href="{{#if bino.id}}/admin/binolar/{{bino.id}}{{else}}/admin/binolar{{/if}}">Bekor qilish</a>
+  </div>
+</form>

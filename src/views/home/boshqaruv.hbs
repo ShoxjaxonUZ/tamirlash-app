@@ -1,0 +1,32 @@
+<div class="page-head">
+  <h1>Umumiy holat</h1>
+  <a class="btn btn-primary" href="/boshqaruv">Barcha arizalar</a>
+</div>
+
+<div class="stats">
+  <a class="stat{{#if son.yangi}} stat-accent{{/if}}" href="/boshqaruv?holat=yangi"><b>{{son.yangi}}</b><span>Yangi — usta kutmoqda</span></a>
+  <a class="stat{{#if son.kechikkan}} stat-late{{/if}}" href="/boshqaruv?kechikkan=1"><b>{{son.kechikkan}}</b><span>Muddati o'tgan</span></a>
+  <a class="stat" href="/boshqaruv"><b>{{son.ishda}}</b><span>Ishda</span></a>
+  <a class="stat" href="/boshqaruv?holat=tekshiruvda"><b>{{son.tekshiruvda}}</b><span>Tekshiruvda</span></a>
+  <a class="stat" href="/boshqaruv?holat=yopilgan"><b>{{son.bugun_yopilgan}}</b><span>Bugun yopildi</span></a>
+  {{#if son.almashtirish}}<a class="stat stat-warn" href="/boshqaruv"><b>{{son.almashtirish}}</b><span>Almashtirish kerak</span></a>{{/if}}
+</div>
+
+<div class="grid-2">
+  <section>
+    <div class="section-head"><h2>Biriktirilmagan arizalar</h2><a href="/boshqaruv?holat=yangi">Hammasi →</a></div>
+    {{#if yangilar.length}}
+      <div class="list">{{#each yangilar}}{{> ariza-row}}{{/each}}</div>
+    {{else}}
+      {{> bosh matn="Hamma arizalar ustalarga biriktirilgan."}}
+    {{/if}}
+  </section>
+  <section>
+    <div class="section-head"><h2>Muddati o'tganlar</h2><a href="/boshqaruv?kechikkan=1">Hammasi →</a></div>
+    {{#if kechikkanlar.length}}
+      <div class="list">{{#each kechikkanlar}}{{> ariza-row}}{{/each}}</div>
+    {{else}}
+      {{> bosh matn="Kechikkan ariza yo'q."}}
+    {{/if}}
+  </section>
+</div>

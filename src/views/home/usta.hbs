@@ -1,0 +1,23 @@
+<div class="page-head">
+  <h1>Salom, {{me.ism}}!</h1>
+  <a class="btn btn-primary" href="/mening-ishlarim">Barcha ishlarim</a>
+</div>
+
+<div class="stats">
+  <a class="stat" href="/mening-ishlarim"><b>{{son.faol}}</b><span>Faol ishlar</span></a>
+  <a class="stat{{#if son.kechikkan}} stat-late{{/if}}" href="/mening-ishlarim"><b>{{son.kechikkan}}</b><span>Kechikkan</span></a>
+  <a class="stat" href="/mening-ishlarim?tab=tekshiruvda"><b>{{son.tekshiruvda}}</b><span>Egasi tasdiqlashini kutmoqda</span></a>
+  <a class="stat" href="/mening-ishlarim?tab=bajarilgan"><b>{{son.bajarilgan}}</b><span>30 kunda bajarildi</span></a>
+</div>
+
+<div class="section-head"><h2>Navbatdagi ishlar</h2><span class="muted small">muddat bo'yicha</span></div>
+{{#if ishlar.length}}
+  <div class="list">{{#each ishlar}}{{> ariza-row}}{{/each}}</div>
+{{else}}
+  {{> bosh matn="Sizga biriktirilgan faol ish yo'q."}}
+{{/if}}
+
+{{#if menikilar.length}}
+<div class="section-head"><h2>O'zim bergan arizalar</h2></div>
+<div class="list">{{#each menikilar}}{{> ariza-row}}{{/each}}</div>
+{{/if}}

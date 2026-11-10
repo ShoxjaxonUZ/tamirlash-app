@@ -1,0 +1,7 @@
+{{#if (gt sahifalar 1)}}
+<nav class="pager" aria-label="Sahifalar">
+  {{#if (gt sahifa 1)}}<a class="btn btn-ghost btn-sm" href="{{url base filtr sahifa=(dec sahifa)}}">← Oldingi</a>{{else}}<span></span>{{/if}}
+  <span class="muted">{{sahifa}} / {{sahifalar}} · jami {{jami}}</span>
+  {{#if (lt sahifa sahifalar)}}<a class="btn btn-ghost btn-sm" href="{{url base filtr sahifa=(inc sahifa)}}">Keyingi →</a>{{else}}<span></span>{{/if}}
+</nav>
+{{/if}}

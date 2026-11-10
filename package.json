@@ -1,0 +1,40 @@
+{
+  "name": "tamirlash-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ta'mirlash arizalari — universitet xonalaridagi buzilgan jihozlar haqida ariza berish va ta'mirni nazorat qilish tizimi",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "migrate": "node src/db/migrate.js",
+    "seed": "node src/db/seed.js",
+    "test": "node --test --test-concurrency=1 \"tests/**/*.test.js\"",
+    "test:unit": "node --test \"tests/unit/*.test.js\"",
+    "zaxira": "node src/db/zaxira.js",
+    "tiklash": "node src/db/zaxira.js tiklash",
+    "tg:webhook": "node src/modules/telegram/setup.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "connect-pg-simple": "^10.0.0",
+    "dotenv": "^16.6.1",
+    "exceljs": "^4.4.0",
+    "express": "^4.22.3",
+    "express-handlebars": "^8.0.7",
+    "express-session": "^1.19.0",
+    "helmet": "^8.3.0",
+    "multer": "^2.5.0",
+    "pg": "^8.23.1",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "supertest": "^7.3.2"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
+  }
+}

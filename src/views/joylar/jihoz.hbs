@@ -1,0 +1,34 @@
+<div class="page-head">
+  <div>
+    <a class="back" href="/xonalar/{{j.xona_id}}">← {{j.bino}} · {{j.xona}}-xona</a>
+    <h1>{{j.tur}} {{j.belgi}}</h1>
+    <div class="badges">
+      {{#if j.faol}}<span class="badge holat-yopilgan">Faol</span>{{else}}<span class="badge">Hisobdan chiqarilgan</span>{{/if}}
+      {{#if muammoli}}<span class="badge badge-warn">Muammoli: 90 kunda {{soni90}} marta buzilgan</span>{{/if}}
+    </div>
+  </div>
+  <div class="row">
+    {{#if j.faol}}<a class="btn btn-ghost" href="/arizalar/yangi?xona={{j.xona_id}}&jihoz={{j.id}}">Ariza berish</a>{{/if}}
+    <a class="btn btn-ghost" href="/admin/jihozlar/{{j.id}}/tahrir">Tahrirlash</a>
+  </div>
+</div>
+
+{{#if muammoli}}
+<div class="alert alert-warn">Bu jihoz tez-tez buzilmoqda — uni almashtirish tavsiya etiladi.</div>
+{{/if}}
+
+<section class="card">
+  <dl class="kv">
+    <dt>Joyi</dt><dd><a href="/xonalar/{{j.xona_id}}">{{j.bino}} · {{j.qavat}}-qavat · {{j.xona}}-xona</a></dd>
+    <dt>Inventar raqami</dt><dd>{{default j.inventar_raqami "—"}}</dd>
+    <dt>Ro'yxatga olingan</dt><dd>{{sana j.yaratilgan}}</dd>
+    <dt>Jami arizalar</dt><dd>{{arizalar.length}}</dd>
+  </dl>
+</section>
+
+<div class="section-head"><h2>Ta'mir tarixi</h2></div>
+{{#if arizalar.length}}
+  <div class="list">{{#each arizalar}}{{> ariza-row}}{{/each}}</div>
+{{else}}
+  {{> bosh matn="Bu jihoz bo'yicha ariza tushmagan."}}
+{{/if}}

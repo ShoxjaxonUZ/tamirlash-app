@@ -1,0 +1,21 @@
+<div class="page-head">
+  <h1>Bildirishnomalar</h1>
+  {{#if me.oqilmagan}}
+  <form method="post" action="/bildirishnomalar/oqildi">{{> csrf}}<button class="btn btn-ghost" type="submit">Hammasini o'qilgan deb belgilash</button></form>
+  {{/if}}
+</div>
+
+{{#if royxat.length}}
+<ul class="notes">
+  {{#each royxat}}
+  <li class="{{#unless oqilgan}}is-new{{/unless}}">
+    <a href="/bildirishnomalar/{{id}}">
+      <span class="note-text">{{matn}}</span>
+      <span class="muted small">{{vaqt yaratilgan}}</span>
+    </a>
+  </li>
+  {{/each}}
+</ul>
+{{else}}
+  {{> bosh matn="Hozircha bildirishnoma yo'q."}}
+{{/if}}

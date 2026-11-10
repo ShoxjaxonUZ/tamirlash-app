@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{{title}} · Ta'mir</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/app.css?v={{versiya}}">
+  <script src="/js/app.js?v={{versiya}}" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Asosiy qismga o'tish</a>
+  <header class="topbar">
+    <div class="topbar-in">
+      <a class="brand" href="/">{{> icon name="wrench"}}<span>Ta'mir</span></a>
+      <nav class="nav" aria-label="Asosiy menyu">
+        <a href="/" {{#if (joriy "/")}}aria-current="page"{{/if}}>Bosh sahifa</a>
+        <a href="/arizalar" {{#if (eq yol "/arizalar")}}aria-current="page"{{/if}}>Mening arizalarim</a>
+        {{#if ustami}}<a href="/mening-ishlarim" {{#if (joriy "/mening-ishlarim")}}aria-current="page"{{/if}}>Mening ishlarim</a>{{/if}}
+        {{#if boshqaruv}}
+          <a href="/boshqaruv" {{#if (joriy "/boshqaruv")}}aria-current="page"{{/if}}>Boshqaruv</a>
+          <a href="/admin/binolar" {{#if (or (joriy "/admin/binolar") (joriy "/admin/xonalar") (joriy "/xonalar"))}}aria-current="page"{{/if}}>Joylar</a>
+          <a href="/admin/jihozlar" {{#if (or (joriy "/admin/jihozlar") (joriy "/jihozlar") (joriy "/admin/turlar"))}}aria-current="page"{{/if}}>Jihozlar</a>
+          <a href="/admin/ustalar" {{#if (joriy "/admin/ustalar")}}aria-current="page"{{/if}}>Ustalar</a>
+          <a href="/hisobotlar" {{#if (joriy "/hisobotlar")}}aria-current="page"{{/if}}>Hisobotlar</a>
+        {{/if}}
+        {{#if adminmi}}<a href="/admin/foydalanuvchilar" {{#if (joriy "/admin/foydalanuvchilar")}}aria-current="page"{{/if}}>Foydalanuvchilar</a>{{/if}}
+      </nav>
+      <div class="topbar-actions">
+        <a class="btn btn-primary btn-sm hide-sm" href="/arizalar/yangi">{{> icon name="plus"}}Ariza berish</a>
+        <a class="bell" href="/bildirishnomalar" aria-label="Bildirishnomalar{{#if me.oqilmagan}}: {{me.oqilmagan}} ta yangi{{/if}}">
+          {{> icon name="bell"}}{{#if me.oqilmagan}}<span class="bell-count">{{#if (gt me.oqilmagan 99)}}99+{{else}}{{me.oqilmagan}}{{/if}}</span>{{/if}}
+        </a>
+        <details class="menu">
+          <summary aria-label="Foydalanuvchi menyusi"><span class="avatar" aria-hidden="true">{{bosh me}}</span></summary>
+          <div class="menu-pop">
+            <div class="menu-head"><strong>{{fio me}}</strong><small>{{rol me.rol}}{{#if me.toifa}} · {{toifa me.toifa}}{{/if}}</small></div>
+            <a href="/profil">Profil, parol, Telegram</a>
+            {{#if adminmi}}<a href="/admin/zaxira">Zaxira nusxalar</a>{{/if}}
+            <form method="post" action="/logout">{{> csrf}}<button type="submit">Chiqish</button></form>
+          </div>
+        </details>
+      </div>
+    </div>
+  </header>
+  <main id="main" class="container">
+    {{> flash}}
+    {{{body}}}
+  </main>
+  <a class="fab" href="/arizalar/yangi" aria-label="Ariza berish">{{> icon name="plus"}}</a>
+  <footer class="footer">Ta'mirlash arizalari · {{yil}}</footer>
+</body>
+</html>

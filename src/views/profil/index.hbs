@@ -1,0 +1,46 @@
+<div class="page-head"><h1>Profil</h1></div>
+
+{{#if majburiy}}
+<div class="alert alert-warn" role="alert">Siz vaqtinchalik parol bilan kirdingiz. Davom etish uchun yangi parol o'rnating.</div>
+{{/if}}
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Ma'lumotlarim</h2>
+    <dl class="kv">
+      <dt>F.I.Sh.</dt><dd>{{p.familiya}} {{p.ism}}</dd>
+      <dt>Login</dt><dd>{{p.login}}</dd>
+      <dt>Rol</dt><dd>{{rol p.rol}}{{#if p.toifa}} · {{toifa p.toifa}}{{/if}}</dd>
+      <dt>Telefon</dt><dd>{{default p.telefon "—"}}</dd>
+      <dt>Ro'yxatdan o'tgan</dt><dd>{{sana p.yaratilgan}}</dd>
+    </dl>
+    <p class="muted small">Ma'lumotlarni o'zgartirish uchun administratorga murojaat qiling.</p>
+
+    <h2 class="mt">Telegram</h2>
+    {{#if tg.yoqilgan}}
+      {{#if tg.ulangan}}
+        <p><span class="badge holat-yopilgan">Ulangan</span> Arizalaringiz haqidagi xabarlar <b>@{{tg.bot}}</b> orqali keladi.</p>
+        <form method="post" action="/profil/telegram/uzish">{{> csrf}}<button class="btn btn-ghost btn-sm" type="submit">Uzish</button></form>
+      {{else}}
+        <p class="muted">Holat o'zgarganda xabar Telegram'ga ham kelsin. Tugmani bosing, ochilgan botda <b>Start</b> ni bosing — tayyor.</p>
+        <form method="post" action="/profil/telegram">{{> csrf}}<button class="btn btn-primary btn-sm" type="submit">Telegram'ni ulash</button></form>
+        <p class="muted small">Havola {{tg.daqiqa}} daqiqa amal qiladi.</p>
+      {{/if}}
+    {{else}}
+      <p class="muted small">Telegram bot hali sozlanmagan. Bildirishnomalar saytdagi qo'ng'iroqcha belgisida ko'rinadi.</p>
+    {{/if}}
+  </section>
+
+  <section class="card">
+    <h2>Parolni almashtirish</h2>
+    {{> errors}}
+    <form method="post" action="/profil/parol" class="stack">
+      {{> csrf}}
+      <label class="field"><span>Joriy parol</span><input name="eski" type="password" autocomplete="current-password" required></label>
+      <label class="field"><span>Yangi parol</span><input name="yangi" type="password" autocomplete="new-password" minlength="8" required>
+        <small class="hint">Kamida 8 belgi</small></label>
+      <label class="field"><span>Yangi parol (takror)</span><input name="takror" type="password" autocomplete="new-password" minlength="8" required></label>
+      <button class="btn btn-primary" type="submit">Saqlash</button>
+    </form>
+  </section>
+</div>

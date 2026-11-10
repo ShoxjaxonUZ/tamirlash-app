@@ -1,0 +1,17 @@
+<a class="arow{{#if kechikkan}} is-late{{/if}}" href="/arizalar/{{id}}">
+  <div class="arow-top">
+    <span class="raqam">{{raqam}}</span>
+    {{> holat h=holat}}
+    {{> muhimlik m=muhimlik}}
+    {{#if kechikkan}}<span class="badge badge-late">Kechikkan</span>{{/if}}
+    {{#if almashtirish_kerak}}<span class="badge badge-warn">Almashtirish kerak</span>{{/if}}
+  </div>
+  <div class="arow-title">{{jihozNomi this}} <span class="muted">· {{joy this}}</span></div>
+  <p class="arow-desc">{{qisqa tavsif 160}}</p>
+  <div class="arow-meta">
+    {{#if (ishdami holat)}}<span class="{{#if kechikkan}}text-late{{/if}}">{{> icon name="clock"}}{{nisbiy muddat}}</span>{{/if}}
+    {{#if usta}}<span>{{> icon name="user"}}{{usta}}</span>{{else}}{{#if (eq holat "yangi")}}<span class="muted">Usta biriktirilmagan</span>{{/if}}{{/if}}
+    {{#if kuzatuvchilar}}<span title="Shu muammo haqida yana xabar berganlar">+{{kuzatuvchilar}} kishi</span>{{/if}}
+    <span class="muted">{{vaqt yaratilgan}}</span>
+  </div>
+</a>

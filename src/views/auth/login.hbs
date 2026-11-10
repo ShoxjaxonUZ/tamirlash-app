@@ -1,0 +1,19 @@
+<div class="card auth-card">
+  <h1>Tizimga kirish</h1>
+  <p class="muted">Xonadagi buzilgan jihoz haqida xabar bering — biz uni ta'mirlaymiz.</p>
+  {{#if xato}}<div class="alert alert-xato" role="alert">{{xato}}</div>{{/if}}
+  <form method="post" action="/login" class="stack">
+    {{> csrf}}
+    <input type="hidden" name="next" value="{{next}}">
+    <label class="field">
+      <span>Login</span>
+      <input name="login" value="{{login}}" autocomplete="username" autocapitalize="none" spellcheck="false" required autofocus>
+    </label>
+    <label class="field">
+      <span>Parol</span>
+      <input name="parol" type="password" autocomplete="current-password" required>
+    </label>
+    <button class="btn btn-primary btn-block" type="submit">Kirish</button>
+  </form>
+  <p class="muted small">Login va parolni xo'jalik bo'limi yoki administrator beradi.</p>
+</div>
