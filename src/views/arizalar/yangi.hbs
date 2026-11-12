@@ -32,15 +32,41 @@
   <a class="btn btn-ghost btn-sm" href="/arizalar/yangi">O'zgartirish</a>
 </div>
 
-{{#if ochiq.length}}
+{{#if jihoz}}
+<div class="card place">
+  {{> icon name="qr"}}
+  <div><strong>{{jihoz.tur}} {{jihoz.belgi}}</strong><span class="muted">{{#if jihoz.inventar_raqami}}Inventar: {{jihoz.inventar_raqami}} · {{/if}}ariza faqat shu jihoz uchun</span></div>
+  <a class="btn btn-ghost btn-sm" href="/arizalar/yangi?xona={{xona.id}}">Boshqa jihoz</a>
+</div>
+{{/if}}
+
+{{#if mavjud}}
+<section class="card dup mavjud">
+  <h2>{{> icon name="alert"}}Bu jihoz bo'yicha ariza allaqachon bor</h2>
+  <div class="row-tight"><strong>{{mavjud.raqam}}</strong>{{> holat h=mavjud.holat}}<span class="muted small">{{mavjud.xabar_berganlar}} kishi xabar bergan · {{vaqt mavjud.yaratilgan}}</span></div>
+  <p>{{qisqa mavjud.tavsif 200}}</p>
+  {{#if mavjud.meniki}}
+    <p class="muted">Bu sizning arizangiz. Qo'shimcha ma'lumot yoki rasm bo'lsa, pastda yozing — u shu arizaga qo'shiladi.</p>
+    <a class="btn btn-ghost btn-sm" href="/arizalar/{{mavjud.id}}">Arizani ochish</a>
+  {{else if mavjud.qoshilganman}}
+    <p class="muted">Siz bu arizaga qo'shilgansiz. Yana ma'lumot bo'lsa, pastda yozing.</p>
+    <a class="btn btn-ghost btn-sm" href="/arizalar/{{mavjud.id}}">Arizani ochish</a>
+  {{else}}
+    <p class="muted">Yangi ariza ochilmaydi: shu muammoni ko'rgan bo'lsangiz, <b>«Menda ham shu muammo»</b> ni bosing. Qo'shimcha ma'lumot yoki rasm bo'lsa — pastda yozing, u shu arizaga qo'shiladi va siz ham holatini kuzatasiz.</p>
+    <form method="post" action="/arizalar/{{mavjud.id}}/menda-ham">{{> csrf}}<button class="btn" type="submit">Menda ham shu muammo</button></form>
+  {{/if}}
+</section>
+{{/if}}
+
+{{#unless jihoz}}{{#if ochiq.length}}
 <section class="card dup">
   <h2>{{> icon name="alert"}}Bu xonada allaqachon xabar berilgan muammolar</h2>
   <p class="muted">Muammoingiz shulardan biri bo'lsa, yangi ariza bermang — <b>"Menda ham shu muammo"</b> ni bosing. Holat o'zgarsa, sizga ham xabar keladi.</p>
   <ul class="dup-list">
     {{#each ochiq}}
-    <li>
+    <li data-tur="{{tur_id}}">
       <div>
-        <div class="row-tight"><strong>{{raqam}}</strong>{{> holat h=holat}}<span>{{jihozNomi this}}</span></div>
+        <div class="row-tight"><strong>{{raqam}}</strong>{{> holat h=holat}}<span>{{jihozNomi this}}</span><span class="badge badge-warn" data-mos-belgi hidden>Siz tanlagan tur</span></div>
         <p>{{qisqa tavsif 150}}</p>
         <small class="muted">{{xabar_berganlar}} kishi xabar bergan · {{vaqt yaratilgan}}</small>
       </div>
@@ -51,38 +77,42 @@
     {{/each}}
   </ul>
 </section>
-{{/if}}
+{{/if}}{{/unless}}
 
 {{> errors}}
 <form method="post" action="/arizalar" enctype="multipart/form-data" class="card stack" data-ariza-forma>
   {{> csrf}}
   <input type="hidden" name="xona_id" value="{{xona.id}}">
 
+  {{#if jihoz}}
+  <input type="hidden" name="jihoz_id" value="{{jihoz.id}}">
+  {{else}}
   {{#if jihozBor}}
   <label class="field"><span>Qaysi jihoz?</span>
     <select name="jihoz_id" data-jihoz>
       <option value="">Ro'yxatda yo'q — turini tanlayman</option>
-      {{#each jihozGuruhlari}}<optgroup label="{{tur}}">{{#each items}}<option value="{{id}}" {{#if (eq id @root.qiymat.jihoz_id)}}selected{{/if}}>{{tur}} {{belgi}}</option>{{/each}}</optgroup>{{/each}}
+      {{#each jihozGuruhlari}}<optgroup label="{{tur}}">{{#each items}}<option value="{{id}}" {{#if (eq id @root.qiymat.jihoz_id)}}selected{{/if}}>{{tur}} {{belgi}}{{#if ochiq_ariza}} — ariza bor ({{ochiq_ariza}}){{/if}}</option>{{/each}}</optgroup>{{/each}}
     </select>
-    <small class="hint">Jihozga yopishtirilgan raqam yoki belgi bo'yicha tanlang (masalan, "#3")</small>
+    <small class="hint">Jihozdagi raqam yoki belgi bo'yicha tanlang (masalan, "#3"). «Ariza bor» jihozni tanlasangiz, xabaringiz o'sha arizaga qo'shiladi.</small>
   </label>
   {{/if}}
 
   <label class="field" data-tur>
     <span>Jihoz turi{{#if jihozBor}} <em>(ro'yxatda bo'lmasa)</em>{{/if}}</span>
-    <select name="tur_id">
+    <select name="tur_id" data-tur-tanlov>
       <option value="">— tanlang —</option>
       {{#each turlar}}<option value="{{id}}" {{#if (eq id @root.qiymat.tur_id)}}selected{{/if}}>{{nomi}}</option>{{/each}}
     </select>
   </label>
+  {{/if}}
 
   <label class="field"><span>Xonadagi aniq joyi <em>(ixtiyoriy)</em></span>
     <input name="joy_izohi" maxlength="200" value="{{qiymat.joy_izohi}}" placeholder="Masalan: deraza tomondagi 2-qator">
   </label>
 
-  <label class="field"><span>Muammo tavsifi</span>
+  <label class="field"><span>{{#if mavjud}}Qo'shimcha ma'lumot{{else}}Muammo tavsifi{{/if}}</span>
     <textarea name="tavsif" rows="4" minlength="10" maxlength="2000" required data-sanagich
-      placeholder="Nima bo'ldi? Masalan: kompyuter yonmayapti, quvvat tugmasi bosilganda hech narsa bo'lmaydi">{{qiymat.tavsif}}</textarea>
+      placeholder="{{#if mavjud}}Masalan: endi umuman yoqilmayapti, xonada juda issiq{{else}}Nima bo'ldi? Masalan: kompyuter yonmayapti, quvvat tugmasi bosilganda hech narsa bo'lmaydi{{/if}}">{{qiymat.tavsif}}</textarea>
     <small class="hint" data-sanagich-matn>Kamida 10 belgi</small>
   </label>
 
@@ -96,10 +126,11 @@
       </label>
       {{/each}}
     </div>
+    {{#if mavjud}}<small class="hint">Yuqoriroq muhimlik tanlasangiz, arizaning muhimligi oshadi va muddati yaqinlashadi.</small>{{/if}}
   </fieldset>
 
   {{> rasm-tanlash max=maxRasm sarlavha="Rasmlar"}}
 
-  <div><button class="btn btn-primary btn-lg" type="submit">Arizani yuborish</button></div>
+  <div><button class="btn btn-primary btn-lg" type="submit">{{#if mavjud}}Xabarni arizaga qo'shish{{else}}Arizani yuborish{{/if}}</button></div>
 </form>
 {{/if}}

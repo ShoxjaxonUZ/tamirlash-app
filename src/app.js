@@ -98,6 +98,7 @@ function createApp() {
   app.use('/arizalar', requireLogin, arizalar.router);
   app.use('/rasmlar', requireLogin, arizalar.rasmlar);
   app.use('/q', requireLogin, arizalar.qr);
+  app.use('/j', requireLogin, arizalar.jihozQr);
   app.use('/bildirishnomalar', requireLogin, require('./modules/bildirishnomalar/routes'));
   app.use('/mening-ishlarim', requireRole('usta'), require('./modules/usta/routes'));
   app.use('/boshqaruv', requireBoshqaruv, require('./modules/boshqaruv/routes'));

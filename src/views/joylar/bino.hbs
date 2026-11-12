@@ -6,7 +6,8 @@
   </div>
   <div class="row">
     <a class="btn btn-primary" href="/admin/xonalar/yangi?bino={{bino.id}}">{{> icon name="plus"}}Xona qo'shish</a>
-    {{#if xonaSoni}}<a class="btn btn-ghost" href="/admin/binolar/{{bino.id}}/qr" target="_blank" rel="noopener">{{> icon name="qr"}}QR-kodlarni chop etish</a>{{/if}}
+    {{#if xonaSoni}}<a class="btn btn-ghost" href="/admin/binolar/{{bino.id}}/qr" target="_blank" rel="noopener">{{> icon name="qr"}}Xonalar QR-kodlari</a>
+    <a class="btn btn-ghost" href="/admin/binolar/{{bino.id}}/jihoz-qr" target="_blank" rel="noopener">{{> icon name="qr"}}Jihozlar QR-kodlari</a>{{/if}}
     <a class="btn btn-ghost" href="/admin/binolar/{{bino.id}}/tahrir">Tahrirlash</a>
   </div>
 </div>

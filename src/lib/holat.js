@@ -52,6 +52,7 @@ const AMALLAR = {
   birlashtirildi: 'Dublikat sifatida birlashtirildi',
   dublikat_qoshildi: "Dublikat ariza qo'shildi",
   menda_ham: '"Menda ham shu muammo"',
+  izoh_qoshildi: "Qo'shimcha xabar",
   yopildi: 'Boshliq yopdi',
   avto_yopildi: 'Avtomatik yopildi',
   baho: "Baho qo'yildi",

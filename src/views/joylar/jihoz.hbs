@@ -17,18 +17,38 @@
 <div class="alert alert-warn">Bu jihoz tez-tez buzilmoqda — uni almashtirish tavsiya etiladi.</div>
 {{/if}}
 
-<section class="card">
-  <dl class="kv">
-    <dt>Joyi</dt><dd><a href="/xonalar/{{j.xona_id}}">{{j.bino}} · {{j.qavat}}-qavat · {{j.xona}}-xona</a></dd>
-    <dt>Inventar raqami</dt><dd>{{default j.inventar_raqami "—"}}</dd>
-    <dt>Ro'yxatga olingan</dt><dd>{{sana j.yaratilgan}}</dd>
-    <dt>Jami arizalar</dt><dd>{{arizalar.length}}</dd>
-  </dl>
-</section>
+<div class="layout-2">
+  <div class="main-col">
+    <section class="card">
+      <dl class="kv">
+        <dt>Joyi</dt><dd><a href="/xonalar/{{j.xona_id}}">{{j.bino}} · {{j.qavat}}-qavat · {{j.xona}}-xona</a></dd>
+        <dt>Inventar raqami</dt><dd>{{default j.inventar_raqami "—"}}</dd>
+        <dt>Ro'yxatga olingan</dt><dd>{{sana j.yaratilgan}}</dd>
+        <dt>Jami arizalar</dt><dd>{{arizalar.length}}</dd>
+      </dl>
+    </section>
 
-<div class="section-head"><h2>Ta'mir tarixi</h2></div>
-{{#if arizalar.length}}
-  <div class="list">{{#each arizalar}}{{> ariza-row}}{{/each}}</div>
-{{else}}
-  {{> bosh matn="Bu jihoz bo'yicha ariza tushmagan."}}
-{{/if}}
+    <section>
+      <div class="section-head"><h2>Ta'mir tarixi</h2></div>
+      {{#if arizalar.length}}
+        <div class="list">{{#each arizalar}}{{> ariza-row}}{{/each}}</div>
+      {{else}}
+        {{> bosh matn="Bu jihoz bo'yicha ariza tushmagan."}}
+      {{/if}}
+    </section>
+  </div>
+
+  <aside class="side-col">
+    <section class="card qr-card">
+      <h2>Jihoz QR-kodi</h2>
+      <div class="qr">{{{svg}}}</div>
+      <p class="small muted break">{{qrManzil}}</p>
+      <p class="small muted">Skanerlansa, ariza faqat shu jihoz uchun beriladi. Ochiq arizasi bo'lsa, yangi xabar o'shanga qo'shiladi.</p>
+      <div class="stack-tight">
+        <a class="btn btn-ghost btn-sm" href="/jihozlar/{{j.id}}/qr.svg">{{> icon name="download"}}SVG yuklab olish</a>
+        <a class="btn btn-ghost btn-sm" href="/admin/xonalar/{{j.xona_id}}/jihoz-qr" target="_blank" rel="noopener">Xonaning jihoz QR-kodlari</a>
+        <form method="post" action="/admin/jihozlar/{{j.id}}/qr-yangilash" data-tasdiq="Yangi QR-kod yaratilsinmi? Eskisi ishlamay qoladi.">{{> csrf}}<button class="btn btn-ghost btn-sm" type="submit">Yangi QR-kod yaratish</button></form>
+      </div>
+    </section>
+  </aside>
+</div>

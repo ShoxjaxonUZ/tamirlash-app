@@ -27,7 +27,7 @@ describe('Boshqaruv', { skip: H.skip }, () => {
   after(() => H.db().pool.end());
 
   const yangi = (agent, extra = {}) =>
-    H.yangiAriza(agent, { xona_id: f.x101.id, jihoz_id: f.komp3, tavsif: 'Kompyuter yonmayapti umuman', ...extra });
+    H.yangiAriza(agent, { xona_id: f.x101.id, tur_id: f.turKomp, tavsif: 'Kompyuter yonmayapti umuman', ...extra });
 
   it("Shoshilinch ariza darhol boshliqqa xabar beradi va muddati 4 soat", async () => {
     const id = await yangi(talaba, { muhimlik: 'shoshilinch', jihoz_id: '', tur_id: f.turElektr, tavsif: 'Rozetkadan uchqun chiqyapti!' });
@@ -38,7 +38,7 @@ describe('Boshqaruv', { skip: H.skip }, () => {
   });
 
   it("Bir vaqtda berilgan arizalar takrorlanmaydigan ketma-ket raqam oladi; parallel amal ikki marta bajarilmaydi", async () => {
-    const ids = await Promise.all(Array.from({ length: 10 }, () => yangi(talaba2, { xona_id: f.x102.id, jihoz_id: f.komp102 })));
+    const ids = await Promise.all(Array.from({ length: 10 }, () => yangi(talaba2, { xona_id: f.x102.id })));
     const raqamlar = (await H.db().many('SELECT raqam FROM arizalar WHERE id = ANY($1::bigint[]) ORDER BY raqam', [ids])).map((r) => r.raqam);
     assert.equal(new Set(raqamlar).size, 10);
     const n = raqamlar.map((r) => Number(r.slice(-4)));
@@ -120,7 +120,7 @@ describe('Boshqaruv', { skip: H.skip }, () => {
   });
 
   it("Almashtirish kerak → boshliq yopadi va jihozni hisobdan chiqaradi", async () => {
-    const id = await yangi(talaba);
+    const id = await yangi(talaba, { jihoz_id: f.komp3 });
     await boshliq.yubor(`/arizalar/${id}/yopish`);
     assert.equal((await H.ariza(id)).holat, 'yangi', 'belgisiz yopilmaydi');
     await boshliq.yubor(`/arizalar/${id}/biriktirish`, { usta_id: f.usta.id });

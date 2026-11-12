@@ -34,7 +34,7 @@ describe('Zaxira nusxa', { skip: H.skip }, () => {
     assert.match(z.nom, /^zaxira-\d{4}-\d{2}-\d{2}_\d{4}\.json\.gz$/);
     const ichida = JSON.parse(zlib.gunzipSync(fs.readFileSync(z.fayl)));
     assert.equal(ichida.jadvallar.arizalar.length, 1);
-    assert.deepEqual(ichida.migratsiyalar, ['001_init', '002_telegram']);
+    assert.deepEqual(ichida.migratsiyalar, ['001_init', '002_telegram', '003_jihoz_qr']);
 
     // Zaxiradan keyingi o'zgarishlar
     await H.db().query("UPDATE arizalar SET tavsif = 'Buzilgan tavsif ...' WHERE id = $1", [id]);

@@ -438,3 +438,17 @@ html:not(.js) .rasm-btn input { max-width: 200px; font-size: 13px; }
 .rasm-tanlash .previews { margin-top: 4px; }
 .rasm-ochir { position: absolute; top: -8px; right: -8px; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 18px; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0; }
 .rasm-ochir:hover { background: var(--danger-soft); color: var(--danger); }
+
+/* Bir xil ariza: jihozning mavjud arizasi va tanlangan turga mos ochiq arizalar */
+.dup.mavjud { border-color: var(--warn); }
+.dup.mavjud > * + * { margin-top: 10px; }
+.dup-list li.mos { background: var(--warn-soft); border-radius: var(--radius-sm); padding: 12px; }
+/* Jihoz QR yorliqlari: A4 ga 3 x 7 */
+.jqr-sheet { display: grid; grid-template-columns: repeat(3, 1fr); max-width: 190mm; margin: 0 auto; padding: 8px; }
+.jqr-label { border: 1px dashed #999; height: 38mm; padding: 2.5mm; display: flex; gap: 2.5mm; align-items: center; break-inside: avoid; page-break-inside: avoid; }
+.jqr-label .qr svg { width: 30mm; max-width: none; margin: 0; }
+.jqr-text { display: flex; flex-direction: column; gap: 1mm; font-size: 10px; line-height: 1.25; color: #111; min-width: 0; }
+.jqr-text strong { font-size: 12.5px; }
+.jqr-text small { font-size: 8.5px; color: #555; overflow-wrap: anywhere; }
+.jqr-filter { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+@media print { .jqr-sheet { padding: 0; max-width: none; } .jqr-label:nth-child(21n + 1) { break-before: page; } .jqr-label:first-child { break-before: auto; } }

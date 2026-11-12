@@ -21,7 +21,7 @@ describe('Xavfsizlik', { skip: H.skip }, () => {
   });
   after(() => H.db().pool.end());
 
-  const asos = () => ({ xona_id: f.x101.id, jihoz_id: f.komp3, muhimlik: 'orta', tavsif: 'Kompyuter umuman yonmayapti' });
+  const asos = () => ({ xona_id: f.x101.id, tur_id: f.turKomp, muhimlik: 'orta', tavsif: 'Kompyuter umuman yonmayapti' });
 
   it("CSRF tokensiz yoki noto'g'ri token bilan POST rad etiladi", async () => {
     const id = await H.yangiAriza(talaba, asos());

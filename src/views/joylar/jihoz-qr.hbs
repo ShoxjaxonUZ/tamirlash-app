@@ -1,0 +1,28 @@
+<div class="print-toolbar no-print">
+  <a href="{{orqaga}}">← {{sarlavha}}</a>
+  <form method="get" class="jqr-filter">
+    {{#each turlar}}<label class="check"><input type="checkbox" name="tur" value="{{id}}" {{#if tanlangan}}checked{{/if}}> {{nomi}} ({{soni}})</label>{{/each}}
+    <button class="btn btn-ghost btn-sm" type="submit">Ko'rsatish</button>
+  </form>
+  <span>{{kartalar.length}} ta yorliq · A4 varaqqa 21 tadan</span>
+  <button class="btn btn-primary" type="button" data-chop>Chop etish</button>
+</div>
+
+{{#if kartalar.length}}
+<div class="jqr-sheet">
+  {{#each kartalar}}
+  <div class="jqr-label">
+    <div class="qr">{{{svg}}}</div>
+    <div class="jqr-text">
+      <strong>{{tur}} {{belgi}}</strong>
+      <span>{{bino}} · {{xona}}-xona</span>
+      {{#if inventar_raqami}}<span>{{inventar_raqami}}</span>{{/if}}
+      <span>Buzilsa — skanerlang</span>
+      <small>{{manzil}}</small>
+    </div>
+  </div>
+  {{/each}}
+</div>
+{{else}}
+<div class="container">{{> bosh matn="Bu yerda jihoz yo'q."}}</div>
+{{/if}}

@@ -196,8 +196,10 @@ describe('TZ qabul qilish mezonlari', { skip: H.skip }, () => {
   });
 
   it('12. Bitta stul 90 kunda 3 marta buziladi → jihoz "Muammoli" deb belgilanadi', async () => {
-    // 11-holatdagi stul arizasiga yana ikkitasi qo'shiladi (biri — 60 kun oldin)
-    await H.yangiAriza(talaba2, { xona_id: f.x101.id, jihoz_id: f.stul1, tavsif: "Stul yana qimirlayapti" });
+    // Bitta jihozda bir vaqtda bitta ochiq ariza: har biri yopilgach stul yana buziladi (biri — 60 kun oldin)
+    const yop = (id) => H.db().query("UPDATE arizalar SET holat = 'yopilgan', yopilgan = now() WHERE id = $1", [id]);
+    await yop((await H.db().one("SELECT id FROM arizalar WHERE jihoz_id = $1 AND holat = 'jarayonda'", [f.stul1])).id);
+    await yop(await H.yangiAriza(talaba2, { xona_id: f.x101.id, jihoz_id: f.stul1, tavsif: "Stul yana qimirlayapti" }));
     const eski = await H.yangiAriza(talaba, { xona_id: f.x101.id, jihoz_id: f.stul1, tavsif: "Stulning suyanchig'i singan" });
     await H.db().query("UPDATE arizalar SET yaratilgan = now() - interval '60 days' WHERE id = $1", [eski]);
 

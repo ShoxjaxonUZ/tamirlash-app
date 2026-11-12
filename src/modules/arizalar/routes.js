@@ -1,4 +1,5 @@
-// /arizalar — ariza berish, ariza sahifasi va undagi barcha amallar; /rasmlar — rasmlar (ruxsat bilan); /q — QR-kod.
+// /arizalar — ariza berish, ariza sahifasi va undagi barcha amallar; /rasmlar — rasmlar (ruxsat bilan);
+// /q — xona QR-kodi, /j — jihoz QR-kodi.
 const path = require('path');
 const express = require('express');
 const config = require('../../config');
@@ -8,6 +9,7 @@ const { h, toId, flash, HttpError } = require('../../lib/http');
 const { Tekshiruv } = require('../../lib/validate');
 const { MUHIMLIK, ISHDA } = require('../../lib/holat');
 const upload = require('../../middleware/upload');
+const { tokenTogrimi } = require('../../lib/qr');
 const S = require('./service');
 const Q = require('./queries');
 
@@ -34,20 +36,26 @@ async function forma(req, res, { xonaId = null, qiymat = {}, xatolar = [], statu
     if (xonaId) xatolar = [...xatolar, 'Xona topilmadi'];
     return res.status(status).render('arizalar/yangi', { title: 'Yangi ariza', bosqich1: true, binolar, xonalar, xatolar });
   }
-  const [jihozlar, turlar, ochiq] = await Promise.all([
+  const [jihozlar, turlar, ochiq, jihoz] = await Promise.all([
     Q.xonaJihozlari(xona.id),
     Q.turlar(),
     Q.xonaOchiqArizalari(xona.id, req.user.id),
+    // QR yoki havola orqali kelgan jihoz: forma o'sha jihozga qulflanadi
+    qiymat.jihoz_id ? Q.formaJihozi(qiymat.jihoz_id, xona.id, req.user.id) : null,
   ]);
+  const mavjud = jihoz && jihoz.ochiq;
   res.status(status).render('arizalar/yangi', {
     title: 'Yangi ariza',
     xona,
+    jihoz,
+    mavjud,
     jihozGuruhlari: guruhla(jihozlar),
     jihozBor: jihozlar.length > 0,
     turlar,
-    ochiq,
+    // Tanlangan jihozning arizasi alohida kartochkada — umumiy ro'yxatda takrorlanmaydi
+    ochiq: mavjud ? ochiq.filter((o) => o.id !== mavjud.id) : ochiq,
     muhimliklar,
-    qiymat: { muhimlik: 'orta', ...qiymat },
+    qiymat: { muhimlik: mavjud ? mavjud.muhimlik : 'orta', ...qiymat },
     xatolar,
     maxRasm: upload.MAX_RASM,
   });
@@ -82,7 +90,13 @@ router.post(
         return forma(req, res, { xonaId: d.xona_id, qiymat: d, xatolar, status: 400 });
       }
       const a = await S.yaratish(req.user, d, req.files);
-      flash(req, 'ok', `Ariza ${a.raqam} qabul qilindi. Holatini shu sahifada kuzatishingiz mumkin.`);
+      flash(
+        req,
+        'ok',
+        a.qoshildi
+          ? `Bu jihoz bo'yicha ${a.raqam} arizasi allaqachon bor — xabaringiz unga qo'shildi. Holat o'zgarsa, sizga ham xabar keladi.`
+          : `Ariza ${a.raqam} qabul qilindi. Holatini shu sahifada kuzatishingiz mumkin.`
+      );
       res.redirect(`/arizalar/${a.id}`);
     } catch (err) {
       upload.ochir(req.files);
@@ -292,4 +306,23 @@ qr.get(
   })
 );
 
-module.exports = { router, rasmlar, qr, muhimliklar };
+// --- /j/:token — jihozga yopishtirilgan QR-kod: forma o'sha jihozga qulflangan holda ochiladi --------
+// Jihozda ochiq ariza bo'lsa, forma yangi ariza o'rniga «mavjud arizaga qo'shilish» ni ko'rsatadi
+const jihozQr = express.Router();
+jihozQr.get(
+  '/:token',
+  h(async (req, res) => {
+    const token = String(req.params.token);
+    const j = tokenTogrimi(token)
+      ? await one(
+          `SELECT j.id, j.xona_id FROM jihozlar j JOIN xonalar x ON x.id = j.xona_id
+            WHERE j.qr_token = $1 AND j.faol AND x.faol`,
+          [token]
+        )
+      : null;
+    if (!j) throw new HttpError(404, "QR-kod eskirgan yoki jihoz topilmadi. Arizani xona tanlab bering.");
+    res.redirect(`/arizalar/yangi?xona=${j.xona_id}&jihoz=${j.id}`);
+  })
+);
+
+module.exports = { router, rasmlar, qr, jihozQr, muhimliklar };

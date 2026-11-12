@@ -130,8 +130,56 @@ async function yangiTekshir(body) {
   };
 }
 
+// Bitta jihozda bitta ochiq ariza: ikkinchi xabar mavjud arizaga qo'shiladi — yangi ariza ochilmaydi,
+// lekin yozganlari (izoh, rasm) yo'qolmaydi va yozgan odam arizani kuzatadi
+async function qoshish(c, user, a, d, rasmlar) {
+  const meniki = a.user_id === user.id;
+  if (!meniki) {
+    await c.query('INSERT INTO ariza_kuzatuvchilar (ariza_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [a.id, user.id]);
+  }
+  const izoh = [d.tavsif, d.joy_izohi && `Joyi: ${d.joy_izohi}`].filter(Boolean).join('\n');
+  await tarix(c, a.id, { eski: a.holat, yangi: a.holat, amal: meniki ? 'izoh_qoshildi' : 'menda_ham', userId: user.id, izoh });
+  for (const f of rasmlar) {
+    await c.query(
+      `INSERT INTO ariza_rasmlar (ariza_id, fayl, mime, hajm, user_id, bosqich) VALUES ($1, $2, $3, $4, $5, 'ariza')`,
+      [a.id, f.filename, f.mimetype, f.size, user.id]
+    );
+  }
+
+  // Yangi xabar muhimroq bo'lsa (masalan, endi shoshilinch) — ariza muhimligi oshadi, muddat yaqinlashadi
+  if (ISHDA.includes(a.holat) && MUHIMLIK[d.muhimlik].tartib > MUHIMLIK[a.muhimlik].tartib) {
+    const yangiMuddat = time.muddatHisobla(d.muhimlik);
+    const muddat = yangiMuddat < new Date(a.muddat) ? yangiMuddat : new Date(a.muddat);
+    const muddatOzgardi = muddat.getTime() !== new Date(a.muddat).getTime();
+    await c.query(
+      `UPDATE arizalar SET muhimlik = $2, muddat = $3, yangilangan = now(),
+              muddat_yaqin_xabar = muddat_yaqin_xabar AND NOT $4, muddat_otdi_xabar = muddat_otdi_xabar AND NOT $4
+        WHERE id = $1`,
+      [a.id, d.muhimlik, muddat, muddatOzgardi]
+    );
+    await tarix(c, a.id, {
+      eski: a.holat,
+      yangi: a.holat,
+      amal: 'muddat',
+      userId: user.id,
+      izoh: `Yangi xabar bo'yicha muhimlik: ${MUHIMLIK[a.muhimlik].nomi} → ${MUHIMLIK[d.muhimlik].nomi}; muddat: ${time.formatVaqt(muddat)}`,
+    });
+    const kimlar = [...(await xabar.boshqaruvchilar(c)), a.usta_id];
+    await xabar.yubor(c, kimlar, a.id, `${nomi(a)}: yana xabar berildi, muhimlik — ${MUHIMLIK[d.muhimlik].nomi}`, user.id);
+  } else if (a.usta_id) {
+    await xabar.yubor(c, [a.usta_id], a.id, `${a.raqam}: yana bir xabar — ${d.tavsif}`, user.id);
+  }
+  return { id: a.id, raqam: a.raqam, qoshildi: true };
+}
+
 async function yaratish(user, d, rasmlar = []) {
   return tx(async (c) => {
+    if (d.jihoz_id) {
+      // Bir jihozga bir vaqtda yuborilgan arizalar shu qulf orqali navbatga turadi
+      await c.query('SELECT 1 FROM jihozlar WHERE id = $1 FOR UPDATE', [d.jihoz_id]);
+      const ochiq = await one('SELECT id FROM arizalar WHERE jihoz_id = $1 AND holat = ANY($2::text[])', [d.jihoz_id, OCHIQ], c);
+      if (ochiq) return qoshish(c, user, await qulfla(c, ochiq.id), d, rasmlar);
+    }
     const raqam = await keyingiRaqam(c);
     const r = await one(
       `INSERT INTO arizalar (raqam, user_id, xona_id, jihoz_id, tur_id, joy_izohi, tavsif, muhimlik, muddat)
@@ -150,7 +198,7 @@ async function yaratish(user, d, rasmlar = []) {
       const a = await qulfla(c, r.id);
       await xabar.yubor(c, await xabar.boshqaruvchilar(c), a.id, `Shoshilinch ariza: ${nomi(a)}`, user.id);
     }
-    return { id: r.id, raqam };
+    return { id: r.id, raqam, qoshildi: false };
   });
 }
 

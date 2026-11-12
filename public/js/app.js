@@ -51,6 +51,22 @@
     yangila();
   });
 
+  // Jihozsiz ariza: tanlangan turdagi ochiq arizalar ajratib ko'rsatiladi — avval ularga qo'shilish tavsiya etiladi
+  document.querySelectorAll('[data-tur-tanlov]').forEach(function (sel) {
+    var items = document.querySelectorAll('.dup-list li[data-tur]');
+    if (!items.length) return;
+    function yangila() {
+      items.forEach(function (li) {
+        var mos = Boolean(sel.value) && li.dataset.tur === sel.value;
+        li.classList.toggle('mos', mos);
+        var belgi = li.querySelector('[data-mos-belgi]');
+        if (belgi) belgi.hidden = !mos;
+      });
+    }
+    sel.addEventListener('change', yangila);
+    yangila();
+  });
+
   // Tavsif uzunligi
   document.querySelectorAll('[data-sanagich]').forEach(function (ta) {
     var matn = ta.parentElement.querySelector('[data-sanagich-matn]');

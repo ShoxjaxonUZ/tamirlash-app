@@ -7,7 +7,7 @@ const { h, toId, flash, HttpError } = require('../../lib/http');
 const { Tekshiruv } = require('../../lib/validate');
 const { OCHIQ } = require('../../lib/holat');
 const { XONA_TURLARI, MUTAXASSISLIKLAR } = require('../../lib/roles');
-const { qrSvg, qrUrl, yangiToken } = require('../../lib/qr');
+const { qrSvg, qrUrl, yangiToken, jihozQrSvg, jihozQrUrl, jihozToken } = require('../../lib/qr');
 const upload = require('../../middleware/upload');
 const Q = require('../arizalar/queries');
 const importer = require('./import');
@@ -171,6 +171,54 @@ admin.get(
   })
 );
 
+// Jihozlarga yopishtiriladigan QR yorliqlar (A4 ga 3 x 7). Tur bo'yicha filtr: ?tur=1&tur=4
+// (masalan, faqat kompyuter, proyektor, konditsioner — stul va stollarga yorliq shart emas)
+async function jihozQrChop(req, res, { sarlavha, orqaga, shart, param }) {
+  const turlar = []
+    .concat(req.query.tur || [])
+    .map(Number)
+    .filter((n) => Number.isSafeInteger(n) && n > 0);
+  const params = [param];
+  let turShart = '';
+  if (turlar.length) {
+    params.push(turlar);
+    turShart = 'AND j.tur_id = ANY($2::bigint[])';
+  }
+  const rows = await many(
+    `SELECT j.id, j.belgi, j.inventar_raqami, j.qr_token, t.nomi AS tur, x.raqam AS xona, b.nomi AS bino
+       FROM jihozlar j JOIN jihoz_turlari t ON t.id = j.tur_id
+       JOIN xonalar x ON x.id = j.xona_id JOIN binolar b ON b.id = x.bino_id
+      WHERE j.faol AND x.faol AND ${shart} ${turShart}
+      ORDER BY x.qavat, length(x.raqam), x.raqam, t.tartib, t.nomi, length(j.belgi), j.belgi
+      LIMIT 600`,
+    params
+  );
+  const mavjudTurlar = await many(
+    `SELECT t.id, t.nomi, count(*)::int AS soni
+       FROM jihozlar j JOIN jihoz_turlari t ON t.id = j.tur_id JOIN xonalar x ON x.id = j.xona_id
+      WHERE j.faol AND x.faol AND ${shart}
+      GROUP BY t.id ORDER BY t.tartib, t.nomi`,
+    [param]
+  );
+  const kartalar = await Promise.all(rows.map(async (j) => ({ ...j, svg: await jihozQrSvg(j.qr_token), manzil: jihozQrUrl(j.qr_token) })));
+  res.render('joylar/jihoz-qr', {
+    title: `Jihoz QR-kodlari — ${sarlavha}`,
+    layout: 'print',
+    sarlavha,
+    orqaga,
+    kartalar,
+    turlar: mavjudTurlar.map((t) => ({ ...t, tanlangan: turlar.includes(t.id) })),
+  });
+}
+
+admin.get(
+  `/binolar${ID}/jihoz-qr`,
+  h(async (req, res) => {
+    const bino = await binoOl(toId(req.params.id));
+    await jihozQrChop(req, res, { sarlavha: bino.nomi, orqaga: `/admin/binolar/${bino.id}`, shart: 'x.bino_id = $1', param: bino.id });
+  })
+);
+
 // --- Xonalar --------------------------------------------------------------------------------------
 
 async function xonaTekshir(body) {
@@ -266,6 +314,19 @@ admin.post(
     await query('UPDATE xonalar SET qr_token = $2 WHERE id = $1', [xona.id, yangiToken()]);
     flash(req, 'ok', 'Yangi QR-kod yaratildi. Eskisi endi ishlamaydi — yangisini chop etib yopishtiring.');
     res.redirect(`/xonalar/${xona.id}`);
+  })
+);
+
+admin.get(
+  `/xonalar${ID}/jihoz-qr`,
+  h(async (req, res) => {
+    const xona = await xonaOl(toId(req.params.id));
+    await jihozQrChop(req, res, {
+      sarlavha: `${xona.bino} · ${xona.raqam}-xona`,
+      orqaga: `/xonalar/${xona.id}`,
+      shart: 'x.id = $1',
+      param: xona.id,
+    });
   })
 );
 
@@ -459,6 +520,17 @@ admin.post(
   })
 );
 
+// Yorliq yo'qolsa yoki yirtilsa — yangi QR; eskisi ishlamay qoladi
+admin.post(
+  `/jihozlar${ID}/qr-yangilash`,
+  h(async (req, res) => {
+    const j = await jihozOl(toId(req.params.id));
+    await query('UPDATE jihozlar SET qr_token = $2 WHERE id = $1', [j.id, jihozToken()]);
+    flash(req, 'ok', 'Yangi QR-kod yaratildi. Eskisi endi ishlamaydi — yangisini chop etib yopishtiring.');
+    res.redirect(`/jihozlar/${j.id}`);
+  })
+);
+
 // Excel dan ommaviy kiritish: avval hamma qatorlar tekshiriladi, xato bo'lsa hech narsa saqlanmaydi
 admin.get('/jihozlar/import', (req, res) => res.render('joylar/import', { title: 'Jihozlarni Excel dan yuklash' }));
 
@@ -533,7 +605,25 @@ jihozlar.get(
     const soni90 = arizalar.filter(
       (a) => a.holat !== 'rad_etilgan' && new Date(a.yaratilgan) > new Date(Date.now() - 90 * 864e5)
     ).length;
-    res.render('joylar/jihoz', { title: `${j.tur} ${j.belgi}`, j, arizalar, soni90, muammoli: soni90 >= 3 });
+    res.render('joylar/jihoz', {
+      title: `${j.tur} ${j.belgi}`,
+      j,
+      arizalar,
+      soni90,
+      muammoli: soni90 >= 3,
+      svg: await jihozQrSvg(j.qr_token),
+      qrManzil: jihozQrUrl(j.qr_token),
+    });
+  })
+);
+
+jihozlar.get(
+  `${ID}/qr.svg`,
+  h(async (req, res) => {
+    const j = await jihozOl(toId(req.params.id));
+    res.type('image/svg+xml');
+    res.attachment(`qr-${j.bino}-${j.xona}-${j.tur}-${j.belgi}.svg`.replace(/[^\w.-]+/g, '-'));
+    res.send(await jihozQrSvg(j.qr_token));
   })
 );
 

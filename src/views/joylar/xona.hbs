@@ -57,6 +57,7 @@
       <div class="stack-tight">
         <a class="btn btn-ghost btn-sm" href="/xonalar/{{xona.id}}/qr.svg">{{> icon name="download"}}SVG yuklab olish</a>
         <a class="btn btn-ghost btn-sm" href="/admin/binolar/{{xona.bino_id}}/qr" target="_blank" rel="noopener">Binoning barcha QR-kodlari</a>
+        <a class="btn btn-ghost btn-sm" href="/admin/xonalar/{{xona.id}}/jihoz-qr" target="_blank" rel="noopener">Jihozlar QR-kodlari</a>
         <form method="post" action="/admin/xonalar/{{xona.id}}/qr-yangilash" data-tasdiq="Yangi QR-kod yaratilsinmi? Eskisi ishlamay qoladi.">{{> csrf}}<button class="btn btn-ghost btn-sm" type="submit">Yangi QR-kod yaratish</button></form>
       </div>
     </section>

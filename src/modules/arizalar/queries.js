@@ -150,21 +150,43 @@ const xonaOl = (id) =>
     [id]
   );
 
+// Xona jihozlari; ochiq arizasi bor jihozda uning raqami (formada «ariza bor» deb ko'rsatiladi)
 const xonaJihozlari = (xonaId) =>
   many(
-    `SELECT j.id, j.belgi, j.tur_id, t.nomi AS tur
+    `SELECT j.id, j.belgi, j.tur_id, t.nomi AS tur, oa.raqam AS ochiq_ariza
        FROM jihozlar j JOIN jihoz_turlari t ON t.id = j.tur_id
+       LEFT JOIN arizalar oa ON oa.jihoz_id = j.id AND oa.holat = ANY($2::text[])
       WHERE j.xona_id = $1 AND j.faol
       ORDER BY t.tartib, t.nomi, length(j.belgi), j.belgi`,
-    [xonaId]
+    [xonaId, OCHIQ]
   );
+
+// QR yoki havola orqali tanlangan jihoz va undagi ochiq ariza (bo'lsa — yangi forma o'rniga «qo'shilish»)
+async function formaJihozi(jihozId, xonaId, userId) {
+  const j = await one(
+    `SELECT j.id, j.belgi, j.inventar_raqami, j.tur_id, t.nomi AS tur
+       FROM jihozlar j JOIN jihoz_turlari t ON t.id = j.tur_id
+      WHERE j.id = $1 AND j.xona_id = $2 AND j.faol`,
+    [jihozId, xonaId]
+  );
+  if (!j) return null;
+  j.ochiq = await one(
+    `SELECT a.id, a.raqam, a.holat, a.muhimlik, a.tavsif, a.yaratilgan,
+            1 + (SELECT count(*) FROM ariza_kuzatuvchilar k WHERE k.ariza_id = a.id)::int AS xabar_berganlar,
+            a.user_id = $2 AS meniki,
+            EXISTS (SELECT 1 FROM ariza_kuzatuvchilar k WHERE k.ariza_id = a.id AND k.user_id = $2) AS qoshilganman
+       FROM arizalar a WHERE a.jihoz_id = $1 AND a.holat = ANY($3::text[])`,
+    [j.id, userId, OCHIQ]
+  );
+  return j;
+}
 
 const turlar = () => many('SELECT id, nomi, mutaxassislik FROM jihoz_turlari ORDER BY tartib, nomi');
 
 // Takroriy arizaning oldini olish: shu xonadagi ochiq arizalar (egasining ismi ko'rsatilmaydi)
 const xonaOchiqArizalari = (xonaId, userId) =>
   many(
-    `SELECT a.id, a.raqam, a.holat, a.tavsif, a.yaratilgan, t.nomi AS tur, j.belgi AS jihoz,
+    `SELECT a.id, a.raqam, a.holat, a.tavsif, a.yaratilgan, a.jihoz_id, a.tur_id, t.nomi AS tur, j.belgi AS jihoz,
             1 + (SELECT count(*) FROM ariza_kuzatuvchilar k WHERE k.ariza_id = a.id)::int AS xabar_berganlar,
             a.user_id = $2 AS meniki,
             EXISTS (SELECT 1 FROM ariza_kuzatuvchilar k WHERE k.ariza_id = a.id AND k.user_id = $2) AS qoshilganman
@@ -193,6 +215,7 @@ module.exports = {
   faolXonalar,
   xonaOl,
   xonaJihozlari,
+  formaJihozi,
   turlar,
   xonaOchiqArizalari,
   xonaArizalari,

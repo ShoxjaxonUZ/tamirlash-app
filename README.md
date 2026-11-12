@@ -9,8 +9,8 @@ TZ: [Ta'mirlash arizalari tizimi — TZ va reja](../TZ-tamirlash-arizalari.md)
 | TZ | Nima qilingan |
 |---|---|
 | FR-1 Ariza berish | Bino → qavat → xona → jihoz; tavsif, xonadagi joyi, 4 muhimlik darajasi, 3 tagacha rasm. Raqam: `T-2026-0001` |
-| FR-2 QR-kod | Har xona uchun QR; skanerlansa forma xona tanlangan holda ochiladi. Bino bo'yicha A4 ga chop etish, QR ni yangilash |
-| FR-3 Dublikatlar | Xona tanlanganda ochiq arizalar ko'rinadi, "Menda ham shu muammo" tugmasi; boshliq dublikatni asosiysiga birlashtiradi |
+| FR-2 QR-kod | **Har jihoz uchun QR** (`/j/…`): skanerlansa ariza faqat shu jihoz uchun ochiladi. Xona uchun QR (`/q/…`) — rozetka, eshik kabi jihozsiz muammolar uchun. Xona yoki bino bo'yicha A4 ga yorliq chop etish (tur bo'yicha filtr), SVG yuklab olish, QR ni yangilash |
+| FR-3 Dublikatlar | **Bir jihoz — bitta ochiq ariza** (bazada unikal indeks): ikkinchi odam yozsa yangi ariza ochilmaydi, uning izohi va rasmi mavjud arizaga qo'shiladi, u kuzatuvchi bo'ladi; muhimroq xabar muhimlik va muddatni oshiradi. Jihozsiz arizalarda — xonadagi shu turdagi ochiq arizalar tavsiya qilinadi, "Menda ham shu muammo"; boshliq dublikatni asosiysiga birlashtiradi |
 | FR-4 Biriktirish | Mutaxassisligi mos ustalar birinchi, bandligi bilan; muddat muhimlikdan avtomatik (4 soat / 1 / 3 / 7 ish kuni), qo'lda o'zgartirish |
 | FR-5 Usta ishi | Ishni boshladim · Ehtiyot qism kutilmoqda · Bajarildi (izoh + rasm) · Almashtirish kerak |
 | FR-6 Tasdiqlash | "Ha, ishlayapti" / "Hali ham buzuq" (o'sha ustaga qaytadi); 3 kun javob bo'lmasa avtomatik yopiladi; 1–5 baho |
@@ -94,7 +94,7 @@ createdb tamirlash_test
 TEST_DATABASE_URL=postgresql://postgres:PAROL@localhost:5432/tamirlash_test npm test
 ```
 
-65 ta test: TZ 10-bo'limidagi **12 ta qabul qilish holati** (`tests/integration/qabul.test.js`), xavfsizlik (CSRF, fayl yuklash, rasmga ruxsat, login cheklovi, open redirect, XSS, SQL), boshqaruv (birlashtirish, almashtirish, qayta biriktirish, parallel so'rovlar, Excel import/eksport, foydalanuvchilar), Telegram (soxta API bilan), zaxira va tiklash, vaqt va holat mantiqi. Test bazasi har faylda tozalanadi — nomida `test` bo'lmasa testlar ishga tushmaydi. GitHub'da har push'da testlar avtomatik ishlaydi (`.github/workflows/ci.yml`).
+76 ta test: TZ 10-bo'limidagi **14 ta qabul qilish holati** (`qabul.test.js`, `jihoz-qr.test.js`), xavfsizlik (CSRF, fayl yuklash, rasmga ruxsat, login cheklovi, open redirect, XSS, SQL), jihoz QR va bir xil arizalarni qo'shish (shu jumladan 5 ta bir vaqtdagi so'rov), boshqaruv (birlashtirish, almashtirish, qayta biriktirish, parallel so'rovlar, Excel import/eksport, foydalanuvchilar), Telegram (soxta API bilan), zaxira va tiklash, vaqt va holat mantiqi. Test bazasi har faylda tozalanadi — nomida `test` bo'lmasa testlar ishga tushmaydi. GitHub'da har push'da testlar avtomatik ishlaydi (`.github/workflows/ci.yml`).
 
 ## Tuzilma
 
@@ -139,7 +139,7 @@ Bepul rejadagi cheklovlar: disk vaqtinchalik — rasmlar va zaxira fayllari qayt
 
 ## Guruhda ishlash (3 a'zo)
 
-Har bir a'zo o'z branch'ida ishlaydi, tayyor ish Pull Request orqali `main` ga qo'shiladi (testlar avtomatik tekshiradi).
+Har bir a'zo o'z branch'ida ishlaydi, tayyor ish Pull Request orqali `main` ga qo'shiladi (testlar avtomatik tekshiradi). Batafsil yo'riqnoma: **[docs/JAMOA.md](docs/JAMOA.md)**.
 
 | Branch | A'zo | Fayllar |
 |---|---|---|
