@@ -1,0 +1,30 @@
+<div class="page-head">
+  <h1>Zaxira nusxalar</h1>
+  <form method="post" action="/admin/zaxira">{{> csrf}}<button class="btn btn-primary" type="submit">{{> icon name="download"}}Hozir zaxira olish</button></form>
+</div>
+
+<div class="card">
+  <p>{{#if avto}}Avtomatik zaxira <b>yoqilgan</b>: kuniga bir marta olinadi, oxirgi <b>{{saqlash}}</b> tasi saqlanadi.{{else}}Avtomatik zaxira <b>o'chirilgan</b> (ZAXIRA_AVTO=false).{{/if}}</p>
+  <p class="muted small">Papka: <code>{{papka}}</code>. Faylda barcha jadvallar, jumladan parol xeshlari bor — uni boshqalarga bermang. Rasmlar (<code>uploads/</code>) alohida saqlanadi.</p>
+  <p class="muted small">Tiklash (joriy ma'lumotlar o'chadi): <code>npm run tiklash -- zaxira/&lt;fayl&gt; --tasdiq</code></p>
+</div>
+
+{{#if royxat.length}}
+<div class="card table-wrap">
+  <table class="table">
+    <thead><tr><th>Fayl</th><th>Vaqti</th><th class="num">Hajmi</th><th></th></tr></thead>
+    <tbody>
+      {{#each royxat}}
+      <tr>
+        <td><code>{{nom}}</code></td>
+        <td>{{vaqt this.vaqt}}</td>
+        <td class="num">{{bytes hajm}}</td>
+        <td><a class="btn btn-ghost btn-sm" href="/admin/zaxira/{{nom}}">Yuklab olish</a></td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>
+{{else}}
+  {{> bosh matn="Hali zaxira olinmagan."}}
+{{/if}}
