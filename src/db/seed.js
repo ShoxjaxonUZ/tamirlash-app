@@ -86,8 +86,10 @@ async function main() {
   // --reset: lokal bazani butunlay tozalab, qaytadan to'ldiradi
   if (process.argv.includes('--reset')) await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await migrate({ log: () => {} });
-  if (await one('SELECT 1 FROM binolar LIMIT 1')) {
-    console.log("Bazada allaqachon binolar bor — demo ma'lumot qo'shilmadi (qaytadan: npm run seed -- --reset).");
+  // Mavjud ma'lumot saqlanadi: bino nomi mos kelsa ("A-Bino" = "A bino") o'shanga qo'shiladi,
+  // bor xonalar o'zgarmaydi, jihoz faqat jihozi yo'q xonalarga, arizalar faqat bazada ariza bo'lmasa
+  if (await one('SELECT 1 FROM arizalar LIMIT 1')) {
+    console.log("Bazada allaqachon arizalar bor — demo ma'lumot qo'shilmadi (lokal bazani qaytadan: npm run seed -- --reset).");
     return;
   }
 
@@ -111,26 +113,44 @@ async function main() {
       }
     }
     for (const b of BINOLAR) {
-      const bino = await one('INSERT INTO binolar (nomi, manzil, qavatlar_soni) VALUES ($1, $2, $3) RETURNING id', [b.nomi, b.manzil, b.qavatlar], c);
       const harf = b.nomi[0];
+      let bino = await one(
+        "SELECT id FROM binolar WHERE regexp_replace(lower(nomi), '[^a-z0-9]', '', 'g') = $1",
+        [b.nomi.toLowerCase().replace(/[^a-z0-9]/g, '')],
+        c
+      );
+      if (bino) await c.query('UPDATE binolar SET qavatlar_soni = GREATEST(qavatlar_soni, $2) WHERE id = $1', [bino.id, b.qavatlar]);
+      else bino = await one('INSERT INTO binolar (nomi, manzil, qavatlar_soni) VALUES ($1, $2, $3) RETURNING id', [b.nomi, b.manzil, b.qavatlar], c);
+
       for (const [raqam, qavat, turi] of b.xonalar) {
-        const x = await one(
-          'INSERT INTO xonalar (bino_id, qavat, raqam, turi, qr_token) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-          [bino.id, qavat, raqam, turi, yangiToken()],
-          c
+        await c.query(
+          `INSERT INTO xonalar (bino_id, qavat, raqam, turi, qr_token) VALUES ($1, $2, $3, $4, $5)
+           ON CONFLICT (bino_id, lower(raqam)) DO NOTHING`,
+          [bino.id, qavat, raqam, turi, yangiToken()]
         );
-        const kalit = `${harf}${raqam}`;
+      }
+      // Binodagi barcha xonalar (foydalanuvchi qo'shganlari ham); jihoz faqat jihozi yo'q xonaga
+      const royxat = await many(
+        `SELECT x.id, x.raqam, x.turi, EXISTS (SELECT 1 FROM jihozlar j WHERE j.xona_id = x.id) AS jihozli
+           FROM xonalar x WHERE x.bino_id = $1`,
+        [bino.id],
+        c
+      );
+      for (const x of royxat) {
+        const kalit = `${harf}${x.raqam}`;
         xonalar[kalit] = x.id;
+        if (x.jihozli) continue;
         let n = 0;
-        for (const [tur, soni] of JIHOZLAR[turi]) {
+        for (const [tur, soni] of JIHOZLAR[x.turi] || JIHOZLAR.auditoriya) {
           for (let i = 1; i <= soni; i++) {
             n += 1;
             const j = await one(
-              'INSERT INTO jihozlar (xona_id, tur_id, belgi, inventar_raqami) VALUES ($1, $2, $3, $4) RETURNING id',
+              `INSERT INTO jihozlar (xona_id, tur_id, belgi, inventar_raqami) VALUES ($1, $2, $3, $4)
+               ON CONFLICT DO NOTHING RETURNING id`,
               [x.id, turlar[tur], `#${i}`, `INV-${kalit}-${String(n).padStart(2, '0')}`],
               c
             );
-            jihozlar[`${kalit} ${tur} #${i}`] = j.id;
+            if (j) jihozlar[`${kalit} ${tur} #${i}`] = j.id;
           }
         }
       }
@@ -138,16 +158,24 @@ async function main() {
   });
 
   const boshliq = u.boshliq;
-  const yarat = (kim, xona, jihoz, tavsif, muhimlik, extra = {}) =>
-    S.yaratish(u[kim], {
+  // Xonada bu jihoz bo'lmasa (foydalanuvchi xonasining turi boshqa) — shu binoda u bor xona olinadi
+  const joyTop = (xona, jihoz) => {
+    if (!jihoz || jihozlar[`${xona} ${jihoz}`]) return xona;
+    const k = Object.keys(jihozlar).find((key) => key.startsWith(xona[0]) && key.endsWith(` ${jihoz}`));
+    return k ? k.slice(0, k.indexOf(' ')) : xona;
+  };
+  const yarat = (kim, xona0, jihoz, tavsif, muhimlik, extra = {}) => {
+    const xona = joyTop(xona0, jihoz);
+    return S.yaratish(u[kim], {
       xona_id: xonalar[xona],
-      jihoz_id: jihoz ? jihozlar[`${xona} ${jihoz}`] : null,
+      jihoz_id: jihoz ? jihozlar[`${xona} ${jihoz}`] || null : null,
       tur_id: extra.tur ? turlar[extra.tur] : turlar[jihoz.split(' #')[0]],
       joy_izohi: extra.joy || null,
       tavsif,
       muhimlik,
     });
-  const ber = (a, usta) => S.biriktirish(boshliq, a.id, { ustaId: u[usta].id });
+  };
+  const ber =(a, usta) => S.biriktirish(boshliq, a.id, { ustaId: u[usta].id });
 
   // A104 Kompyuter #3 — oxirgi 90 kunda uchinchi marta buziladi ("muammoli jihoz")
   for (const [kun, matn] of [[45, "Kompyuter juda sekin ishlayapti, qotib qolyapti"], [20, "Kompyuter o'z-o'zidan o'chib qolyapti"]]) {
