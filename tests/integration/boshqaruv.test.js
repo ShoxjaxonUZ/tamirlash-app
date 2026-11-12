@@ -35,6 +35,22 @@ describe('Boshqaruv', { skip: H.skip }, () => {
     const farq = (new Date(a.muddat) - new Date(a.yaratilgan)) / 3600e3;
     assert.ok(Math.abs(farq - 4) < 0.01, `muddat ${farq} soat`);
     assert.ok((await H.xabarlar(f.boshliq.id)).some((x) => x.ariza_id === id && /Shoshilinch/.test(x.matn)));
+    assert.ok((await H.xabarlar(f.admin.id)).some((x) => x.ariza_id === id && /Shoshilinch/.test(x.matn)), 'admin ham');
+  });
+
+  it("Har bir yangi ariza boshliq va adminga xabar qilinadi, yozgan odamning o'ziga emas", async () => {
+    const id = await yangi(talaba, { tavsif: 'Sichqoncha ishlamayapti, kursor qimirlamaydi' });
+    for (const kim of [f.boshliq, f.admin]) {
+      const x = (await H.xabarlar(kim.id)).find((b) => b.ariza_id === id);
+      assert.ok(x, `rol: ${kim.rol}`);
+      assert.match(x.matn, /^Yangi ariza: T-\d{4}-\d{4} \(A bino, 101-xona — Kompyuter\) — Sichqoncha/);
+    }
+    assert.equal((await H.xabarlar(f.talaba.id)).filter((b) => b.ariza_id === id).length, 0);
+    assert.equal((await H.xabarlar(f.usta.id)).filter((b) => b.ariza_id === id).length, 0, 'usta biriktirilganda oladi');
+
+    const oz = await yangi(admin, { tavsif: "Admin o'zi yozgan ariza, proyektor" });
+    assert.equal((await H.xabarlar(f.admin.id)).filter((b) => b.ariza_id === oz).length, 0, "o'ziga yuborilmaydi");
+    assert.ok((await H.xabarlar(f.boshliq.id)).some((b) => b.ariza_id === oz));
   });
 
   it("Bir vaqtda berilgan arizalar takrorlanmaydigan ketma-ket raqam oladi; parallel amal ikki marta bajarilmaydi", async () => {

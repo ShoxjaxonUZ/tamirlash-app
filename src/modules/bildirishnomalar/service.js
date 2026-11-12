@@ -16,11 +16,9 @@ async function yubor(c, userIds, arizaId, matn, kimdan = null) {
   return ids.length;
 }
 
-// Xo'jalik boshliqlari; ular bo'lmasa — administratorlar
+// Boshqaruv xabarlarini oladiganlar: xo'jalik boshliqlari va administratorlar
 async function boshqaruvchilar(c) {
-  const b = await many("SELECT id FROM users WHERE rol = 'boshliq' AND faol", [], c);
-  if (b.length) return b.map((r) => r.id);
-  return (await many("SELECT id FROM users WHERE rol = 'admin' AND faol", [], c)).map((r) => r.id);
+  return (await many("SELECT id FROM users WHERE rol IN ('boshliq', 'admin') AND faol ORDER BY id", [], c)).map((r) => r.id);
 }
 
 async function kuzatuvchilar(c, arizaId) {

@@ -169,6 +169,7 @@ describe('TZ qabul qilish mezonlari', { skip: H.skip }, () => {
     assert.equal(await jobs.muddatOtdi(), 1);
     assert.equal(await jobs.muddatOtdi(), 0, 'ikkinchi marta yuborilmaydi');
     assert.ok((await H.xabarlar(f.boshliq.id)).some((x) => x.ariza_id === id && /muddati o'tdi/.test(x.matn)));
+    assert.ok((await H.xabarlar(f.admin.id)).some((x) => x.ariza_id === id && /muddati o'tdi/.test(x.matn)), 'admin ham');
   });
 
   it("10. Talaba boshqa talabaning arizasini yoki /boshqaruv ni ochmoqchi → 403", async () => {

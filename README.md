@@ -14,7 +14,7 @@ TZ: [Ta'mirlash arizalari tizimi — TZ va reja](../TZ-tamirlash-arizalari.md)
 | FR-4 Biriktirish | Mutaxassisligi mos ustalar birinchi, bandligi bilan; muddat muhimlikdan avtomatik (4 soat / 1 / 3 / 7 ish kuni), qo'lda o'zgartirish |
 | FR-5 Usta ishi | Ishni boshladim · Ehtiyot qism kutilmoqda · Bajarildi (izoh + rasm) · Almashtirish kerak |
 | FR-6 Tasdiqlash | "Ha, ishlayapti" / "Hali ham buzuq" (o'sha ustaga qaytadi); 3 kun javob bo'lmasa avtomatik yopiladi; 1–5 baho |
-| FR-7 Bildirishnomalar | Saytda (qo'ng'iroqcha) va **Telegram bot** orqali: biriktirildi, boshlandi, bajarildi, muddat yaqin (2 soat), muddat o'tdi, shoshilinch ariza |
+| FR-7 Bildirishnomalar | Saytda (qo'ng'iroqcha) va **Telegram bot** orqali: biriktirildi, boshlandi, bajarildi, muddat yaqin (2 soat), muddat o'tdi; **har bir yangi ariza — boshliq va adminga** (shoshilinch alohida belgilanadi) |
 | FR-8 Jihoz tarixi | Har jihozning ta'mir tarixi; 90 kunda 3+ marta buzilsa — "Muammoli" |
 | FR-9 Hisobotlar | Holatlar, o'rtacha bajarilish vaqti, muddatida bajarilgan %, eng ko'p buziladigan xonalar, jihoz turlari, ustalar reytingi, Excel eksport |
 | 7. Nofunksional | Mobil (375 px); 1000 ta ariza bilan sahifalar serverda 20–60 ms, eng sekini — Excel eksport 0,5 s gacha (talab: 2 s); kunlik zaxira nusxa; CSRF, login cheklovi |
@@ -94,7 +94,7 @@ createdb tamirlash_test
 TEST_DATABASE_URL=postgresql://postgres:PAROL@localhost:5432/tamirlash_test npm test
 ```
 
-76 ta test: TZ 10-bo'limidagi **14 ta qabul qilish holati** (`qabul.test.js`, `jihoz-qr.test.js`), xavfsizlik (CSRF, fayl yuklash, rasmga ruxsat, login cheklovi, open redirect, XSS, SQL), jihoz QR va bir xil arizalarni qo'shish (shu jumladan 5 ta bir vaqtdagi so'rov), boshqaruv (birlashtirish, almashtirish, qayta biriktirish, parallel so'rovlar, Excel import/eksport, foydalanuvchilar), Telegram (soxta API bilan), zaxira va tiklash, vaqt va holat mantiqi. Test bazasi har faylda tozalanadi — nomida `test` bo'lmasa testlar ishga tushmaydi. GitHub'da har push'da testlar avtomatik ishlaydi (`.github/workflows/ci.yml`).
+77 ta test: TZ 10-bo'limidagi **14 ta qabul qilish holati** (`qabul.test.js`, `jihoz-qr.test.js`), xavfsizlik (CSRF, fayl yuklash, rasmga ruxsat, login cheklovi, open redirect, XSS, SQL), jihoz QR va bir xil arizalarni qo'shish (shu jumladan 5 ta bir vaqtdagi so'rov), boshqaruv (birlashtirish, almashtirish, qayta biriktirish, parallel so'rovlar, Excel import/eksport, foydalanuvchilar), Telegram (soxta API bilan), zaxira va tiklash, vaqt va holat mantiqi. Test bazasi har faylda tozalanadi — nomida `test` bo'lmasa testlar ishga tushmaydi. GitHub'da har push'da testlar avtomatik ishlaydi (`.github/workflows/ci.yml`).
 
 ## Tuzilma
 

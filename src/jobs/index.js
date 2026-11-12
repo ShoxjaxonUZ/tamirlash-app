@@ -1,7 +1,7 @@
 // Rejalashtirilgan ishlar (TZ, FR-6.2 va FR-7):
 //  - tekshiruvda 3 kun turgan ariza avtomatik yopiladi;
 //  - muddatiga 2 soatdan kam qolganda ustaga xabar;
-//  - muddati o'tganda boshliqqa (va ustaga) xabar.
+//  - muddati o'tganda boshliq va adminga (va ustaga) xabar.
 //  - kuniga bir marta bazaning zaxira nusxasi (TZ, 7-bo'lim);
 //  - Telegram navbatidagi xabarlarni yuborish.
 // Har biri bitta SQL buyruq: holat, tarix va bildirishnoma birga yoziladi. Har bir xabar bir marta yuboriladi.
@@ -59,9 +59,7 @@ async function muddatOtdi(c = pool) {
         WHERE holat IN ${ISHDA} AND NOT muddat_otdi_xabar AND muddat < now()
         RETURNING id, raqam, usta_id
      ), qabul AS (
-       SELECT id FROM users WHERE rol = 'boshliq' AND faol
-       UNION ALL
-       SELECT id FROM users WHERE rol = 'admin' AND faol AND NOT EXISTS (SELECT 1 FROM users WHERE rol = 'boshliq' AND faol)
+       SELECT id FROM users WHERE rol IN ('boshliq', 'admin') AND faol
      ), n AS (
        INSERT INTO bildirishnomalar (user_id, ariza_id, matn)
        SELECT q.id, y.id, y.raqam || ': muddati o''tdi' FROM y CROSS JOIN qabul q

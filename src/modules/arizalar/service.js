@@ -194,10 +194,10 @@ async function yaratish(user, d, rasmlar = []) {
       );
     }
     await tarix(c, r.id, { yangi: 'yangi', amal: 'yaratildi', userId: user.id });
-    if (d.muhimlik === 'shoshilinch') {
-      const a = await qulfla(c, r.id);
-      await xabar.yubor(c, await xabar.boshqaruvchilar(c), a.id, `Shoshilinch ariza: ${nomi(a)}`, user.id);
-    }
+    // Har bir yangi ariza boshliq va adminga xabar qilinadi (biriktirish uchun)
+    const a = await qulfla(c, r.id);
+    const sarlavha = d.muhimlik === 'shoshilinch' ? 'Shoshilinch ariza' : 'Yangi ariza';
+    await xabar.yubor(c, await xabar.boshqaruvchilar(c), a.id, `${sarlavha}: ${nomi(a)} — ${d.tavsif}`, user.id);
     return { id: r.id, raqam, qoshildi: false };
   });
 }
