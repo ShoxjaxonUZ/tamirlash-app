@@ -429,3 +429,12 @@ a.stat:hover { text-decoration: none; border-color: var(--primary); }
 .bar-yopilgan { fill: var(--success); }
 .bar-rad_etilgan { fill: var(--gray); }
 .mt { margin-top: 22px; }
+
+/* Rasm tanlash: kamera va galereya tugmalari, olib tashlanadigan ko'rinishlar */
+.rasm-tugmalar { display: flex; gap: 10px; flex-wrap: wrap; }
+.rasm-btn { position: relative; flex: 1 1 180px; min-height: 48px; }
+html.js .rasm-btn input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+html:not(.js) .rasm-btn input { max-width: 200px; font-size: 13px; }
+.rasm-tanlash .previews { margin-top: 4px; }
+.rasm-ochir { position: absolute; top: -8px; right: -8px; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 18px; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0; }
+.rasm-ochir:hover { background: var(--danger-soft); color: var(--danger); }

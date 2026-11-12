@@ -3,8 +3,6 @@
   'use strict';
   document.documentElement.classList.add('js');
 
-  var MAX_HAJM = 5 * 1024 * 1024;
-
   // 1-bosqich: bino va qavat bo'yicha xonalarni saralash, xona tanlanganda avtomatik davom etish
   document.querySelectorAll('[data-xona-tanlash]').forEach(function (form) {
     var bino = form.querySelector('[data-filtr="bino"]');
@@ -65,37 +63,133 @@
     yangila();
   });
 
-  // Rasmlar: soni va hajmini oldindan tekshirish, kichik ko'rinish
-  document.querySelectorAll('input[type="file"][data-max]').forEach(function (input) {
-    var max = Number(input.dataset.max) || 3;
-    var box = input.closest('form').querySelector('[data-previews]');
-    var label = input.closest('.upload');
-    var asl = label ? label.querySelector('span').textContent : '';
-    input.addEventListener('change', function () {
-      var files = Array.prototype.slice.call(input.files || []);
-      var xato = '';
-      if (files.length > max) xato = "Ko'pi bilan " + max + ' ta rasm tanlang';
-      files.forEach(function (f) {
-        if (!/^image\/(jpeg|png)$/.test(f.type)) xato = 'Faqat JPG yoki PNG rasm';
-        else if (f.size > MAX_HAJM) xato = f.name + ': 5 MB dan katta';
+  // Rasmlar: "Suratga olish" (kamera) va "Galereyadan tanlash". Telefon kamerasining 5–15 MB li surati
+  // yuborishdan oldin shu yerda kichraytiriladi (uzun tomoni 1600px, JPEG) va yashirin maydonga yig'iladi.
+  // JS siz: ikkala tugma ham to'g'ridan-to'g'ri yuboriladi (server hajm va turini tekshiradi).
+  var UZUN_TOMON = 1600;
+
+  function rasmniOch(file) {
+    if (window.createImageBitmap) {
+      return createImageBitmap(file, { imageOrientation: 'from-image' }).catch(function () { return imgOrqali(file); });
+    }
+    return imgOrqali(file);
+  }
+  function imgOrqali(file) {
+    return new Promise(function (ok, xato) {
+      var img = new Image();
+      var url = URL.createObjectURL(file);
+      img.onload = function () { URL.revokeObjectURL(url); ok(img); };
+      img.onerror = function () { URL.revokeObjectURL(url); xato(new Error('ochilmadi')); };
+      img.src = url;
+    });
+  }
+  function kichrayt(file) {
+    return rasmniOch(file).then(function (rasm) {
+      var w = rasm.width;
+      var h = rasm.height;
+      var k = Math.min(1, UZUN_TOMON / Math.max(w, h));
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.round(w * k);
+      canvas.height = Math.round(h * k);
+      canvas.getContext('2d').drawImage(rasm, 0, 0, canvas.width, canvas.height);
+      if (rasm.close) rasm.close();
+      return new Promise(function (ok, xato) {
+        canvas.toBlob(function (blob) {
+          if (!blob) return xato(new Error('saqlanmadi'));
+          var nom = (file.name || 'rasm').replace(/\.[^.]+$/, '') + '.jpg';
+          ok(new File([blob], nom, { type: 'image/jpeg' }));
+        }, 'image/jpeg', 0.85);
       });
-      input.setCustomValidity(xato);
-      if (xato) input.reportValidity();
-      if (label) label.querySelector('span').textContent = files.length ? files.length + ' ta rasm tanlandi' : asl;
-      if (!box) return;
+    });
+  }
+
+  var dtBor = (function () {
+    try { return Boolean(new DataTransfer().files); } catch (e) { return false; }
+  })();
+
+  document.querySelectorAll('[data-rasmlar]').forEach(function (blok) {
+    var max = Number(blok.dataset.max) || 3;
+    var kamera = blok.querySelector('[data-kamera]');
+    var galereya = blok.querySelector('[data-galereya]');
+    var yuborish = blok.querySelector('[data-yuboriladi]');
+    var box = blok.querySelector('[data-previews]');
+    var xabar = blok.querySelector('[data-rasm-xabar]');
+    var form = blok.closest('form');
+    var asl = xabar.textContent;
+    var tanlangan = [];
+    var jarayonda = 0;
+
+    // Kompyuterda (sichqoncha) kamera tugmasi kerak emas — "capture" u yerda ishlamaydi
+    if (window.matchMedia && !window.matchMedia('(pointer: coarse)').matches) {
+      blok.querySelector('[data-kamera-tugma]').hidden = true;
+      blok.querySelector('[data-galereya-matn]').textContent = 'Rasm tanlash';
+    }
+    if (!dtBor) return; // eski brauzer: oddiy yuborish
+
+    kamera.removeAttribute('name');
+    galereya.removeAttribute('name');
+    yuborish.name = 'rasmlar';
+    yuborish.disabled = false;
+
+    function yangila(matn) {
+      var dt = new DataTransfer();
+      tanlangan.forEach(function (f) { dt.items.add(f); });
+      yuborish.files = dt.files;
+      xabar.textContent = matn || (tanlangan.length ? tanlangan.length + ' / ' + max + ' ta rasm' : asl);
+      form.querySelectorAll('button[type="submit"]').forEach(function (b) { b.disabled = jarayonda > 0; });
       box.innerHTML = '';
-      files.slice(0, max).forEach(function (f) {
+      tanlangan.forEach(function (f, i) {
         var fig = document.createElement('figure');
         var img = document.createElement('img');
-        img.alt = '';
+        img.alt = 'Tanlangan rasm ' + (i + 1);
         img.src = URL.createObjectURL(f);
         img.onload = function () { URL.revokeObjectURL(img.src); };
-        var cap = document.createElement('figcaption');
-        cap.textContent = f.name;
+        var och = document.createElement('button');
+        och.type = 'button';
+        och.className = 'rasm-ochir';
+        och.setAttribute('aria-label', 'Rasmni olib tashlash');
+        och.textContent = '×';
+        och.addEventListener('click', function () {
+          tanlangan.splice(i, 1);
+          yangila();
+        });
         fig.appendChild(img);
-        fig.appendChild(cap);
+        fig.appendChild(och);
         box.appendChild(fig);
       });
+    }
+
+    function qosh(input) {
+      var files = Array.prototype.slice.call(input.files || []);
+      input.value = '';
+      var joy = max - tanlangan.length - jarayonda;
+      if (files.length > joy) {
+        files = files.slice(0, Math.max(0, joy));
+        yangila("Ko'pi bilan " + max + ' ta rasm — ortiqchasi olinmadi');
+      }
+      files.forEach(function (f) {
+        jarayonda += 1;
+        yangila('Rasm tayyorlanmoqda…');
+        kichrayt(f)
+          .then(function (tayyor) {
+            tanlangan.push(tayyor);
+            jarayonda -= 1;
+            yangila();
+          })
+          .catch(function () {
+            jarayonda -= 1;
+            yangila(f.name + ": bu rasmni o'qib bo'lmadi — JPG yoki PNG tanlang");
+          });
+      });
+    }
+
+    kamera.addEventListener('change', function () { qosh(kamera); });
+    galereya.addEventListener('change', function () { qosh(galereya); });
+    form.addEventListener('submit', function (e) {
+      if (jarayonda > 0) {
+        e.preventDefault();
+        xabar.textContent = 'Rasm hali tayyorlanmoqda — bir soniya kuting';
+      }
     });
   });
 
@@ -123,6 +217,7 @@
       e.preventDefault();
       return;
     }
+    if (e.defaultPrevented) return;
     // Ikki marta yuborishning oldini olish (GET filtrlaridan tashqari)
     if ((form.method || '').toLowerCase() === 'post') {
       var btn = e.submitter || form.querySelector('button[type="submit"]');

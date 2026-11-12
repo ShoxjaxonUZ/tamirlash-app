@@ -1,0 +1,14 @@
+<div class="field rasm-tanlash" data-rasmlar data-max="{{max}}">
+  <span class="label">{{sarlavha}} <em>(ixtiyoriy · {{max}} tagacha)</em></span>
+  <div class="rasm-tugmalar">
+    <label class="btn btn-primary rasm-btn" data-kamera-tugma>{{> icon name="camera"}}<span>Suratga olish</span>
+      <input type="file" name="rasmlar" accept="image/*" capture="environment" data-kamera>
+    </label>
+    <label class="btn btn-ghost rasm-btn">{{> icon name="image"}}<span data-galereya-matn>Galereyadan tanlash</span>
+      <input type="file" name="rasmlar" accept="image/*" multiple data-galereya>
+    </label>
+  </div>
+  <input type="file" multiple hidden disabled data-yuboriladi>
+  <div class="previews" data-previews></div>
+  <small class="hint" data-rasm-xabar aria-live="polite">Rasm avtomatik kichraytiriladi. JPG yoki PNG.</small>
+</div>

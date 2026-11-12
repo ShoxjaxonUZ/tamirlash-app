@@ -98,13 +98,7 @@
     </div>
   </fieldset>
 
-  <div class="field">
-    <span class="label">Rasmlar <em>(ixtiyoriy · {{maxRasm}} tagacha · har biri 5 MB gacha · JPG/PNG)</em></span>
-    <label class="upload">{{> icon name="camera"}}<span>Rasm tanlash yoki suratga olish</span>
-      <input type="file" name="rasmlar" accept="image/jpeg,image/png" multiple data-max="{{maxRasm}}">
-    </label>
-    <div class="previews" data-previews></div>
-  </div>
+  {{> rasm-tanlash max=maxRasm sarlavha="Rasmlar"}}
 
   <div><button class="btn btn-primary btn-lg" type="submit">Arizani yuborish</button></div>
 </form>

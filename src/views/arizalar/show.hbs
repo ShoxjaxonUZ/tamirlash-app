@@ -81,9 +81,7 @@
           {{> csrf}}
           <label class="field"><span>Nima qilindi?</span>
             <textarea name="izoh" rows="3" maxlength="1000" required placeholder="Masalan: quvvat bloki almashtirildi, kompyuter ishlayapti"></textarea></label>
-          <label class="upload">{{> icon name="camera"}}<span>Natija rasmi <em>(ixtiyoriy)</em></span>
-            <input type="file" name="rasmlar" accept="image/jpeg,image/png" multiple data-max="{{maxRasm}}"></label>
-          <div class="previews" data-previews></div>
+          {{> rasm-tanlash max=maxRasm sarlavha="Natija rasmi"}}
           <div><button class="btn btn-success" type="submit">Bajarildi</button></div>
         </form>
       {{/if}}
