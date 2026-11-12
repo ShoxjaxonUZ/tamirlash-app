@@ -171,13 +171,18 @@ admin.get(
   })
 );
 
-// Jihozlarga yopishtiriladigan QR yorliqlar (A4 ga 3 x 7). Tur bo'yicha filtr: ?tur=1&tur=4
-// (masalan, faqat kompyuter, proyektor, konditsioner — stul va stollarga yorliq shart emas)
-async function jihozQrChop(req, res, { sarlavha, orqaga, shart, param }) {
-  const turlar = []
-    .concat(req.query.tur || [])
+// Jihoz turlari filtri: ?tur=1&tur=4 (yoki formadagi tur maydonlari)
+const turlarOl = (v) =>
+  []
+    .concat(v || [])
     .map(Number)
     .filter((n) => Number.isSafeInteger(n) && n > 0);
+const turQuery = (turlar) => (turlar.length ? `?${turlar.map((t) => `tur=${t}`).join('&')}` : '');
+
+// Jihozlarga yopishtiriladigan QR yorliqlar (A4 ga 3 x 7). Faqat QR-kodi yaratilgan jihozlar chiqadi;
+// tur bo'yicha filtr — masalan, faqat kompyuter, proyektor, konditsioner (stul va stollarga yorliq shart emas)
+async function jihozQrChop(req, res, { sarlavha, orqaga, manzil, shart, param }) {
+  const turlar = turlarOl(req.query.tur);
   const params = [param];
   let turShart = '';
   if (turlar.length) {
@@ -188,34 +193,74 @@ async function jihozQrChop(req, res, { sarlavha, orqaga, shart, param }) {
     `SELECT j.id, j.belgi, j.inventar_raqami, j.qr_token, t.nomi AS tur, x.raqam AS xona, b.nomi AS bino
        FROM jihozlar j JOIN jihoz_turlari t ON t.id = j.tur_id
        JOIN xonalar x ON x.id = j.xona_id JOIN binolar b ON b.id = x.bino_id
-      WHERE j.faol AND x.faol AND ${shart} ${turShart}
+      WHERE j.faol AND x.faol AND j.qr_token IS NOT NULL AND ${shart} ${turShart}
       ORDER BY x.qavat, length(x.raqam), x.raqam, t.tartib, t.nomi, length(j.belgi), j.belgi
       LIMIT 600`,
     params
   );
   const mavjudTurlar = await many(
-    `SELECT t.id, t.nomi, count(*)::int AS soni
+    `SELECT t.id, t.nomi, count(*)::int AS soni, count(j.qr_token)::int AS qrli
        FROM jihozlar j JOIN jihoz_turlari t ON t.id = j.tur_id JOIN xonalar x ON x.id = j.xona_id
       WHERE j.faol AND x.faol AND ${shart}
       GROUP BY t.id ORDER BY t.tartib, t.nomi`,
     [param]
   );
+  const tanlangan = mavjudTurlar.filter((t) => !turlar.length || turlar.includes(t.id));
+  const jami = tanlangan.reduce((s, t) => s + t.soni, 0);
+  const qrsiz = tanlangan.reduce((s, t) => s + t.soni - t.qrli, 0);
   const kartalar = await Promise.all(rows.map(async (j) => ({ ...j, svg: await jihozQrSvg(j.qr_token), manzil: jihozQrUrl(j.qr_token) })));
   res.render('joylar/jihoz-qr', {
     title: `Jihoz QR-kodlari — ${sarlavha}`,
     layout: 'print',
     sarlavha,
     orqaga,
+    manzil,
     kartalar,
+    jami,
+    qrsiz,
+    tanlanganTurlar: turlar,
     turlar: mavjudTurlar.map((t) => ({ ...t, tanlangan: turlar.includes(t.id) })),
   });
+}
+
+// "QR-kod yaratish": QR-kodi yo'q faol jihozlarga yangi kod beradi (bor kodlar o'zgarmaydi)
+async function jihozQrYarat(req, res, { manzil, shart, param }) {
+  const turlar = turlarOl(req.body.tur);
+  const params = [param];
+  let turShart = '';
+  if (turlar.length) {
+    params.push(turlar);
+    turShart = 'AND j.tur_id = ANY($2::bigint[])';
+  }
+  const r = await query(
+    `UPDATE jihozlar j SET qr_token = substr(replace(gen_random_uuid()::text, '-', ''), 1, 16)
+       FROM xonalar x
+      WHERE x.id = j.xona_id AND j.faol AND x.faol AND j.qr_token IS NULL AND ${shart} ${turShart}`,
+    params
+  );
+  flash(req, 'ok', r.rowCount ? `${r.rowCount} ta jihozga QR-kod yaratildi.` : "QR-kodi yo'q jihoz qolmadi.");
+  res.redirect(manzil + turQuery(turlar));
 }
 
 admin.get(
   `/binolar${ID}/jihoz-qr`,
   h(async (req, res) => {
     const bino = await binoOl(toId(req.params.id));
-    await jihozQrChop(req, res, { sarlavha: bino.nomi, orqaga: `/admin/binolar/${bino.id}`, shart: 'x.bino_id = $1', param: bino.id });
+    await jihozQrChop(req, res, {
+      sarlavha: bino.nomi,
+      orqaga: `/admin/binolar/${bino.id}`,
+      manzil: `/admin/binolar/${bino.id}/jihoz-qr`,
+      shart: 'x.bino_id = $1',
+      param: bino.id,
+    });
+  })
+);
+
+admin.post(
+  `/binolar${ID}/jihoz-qr`,
+  h(async (req, res) => {
+    const bino = await binoOl(toId(req.params.id));
+    await jihozQrYarat(req, res, { manzil: `/admin/binolar/${bino.id}/jihoz-qr`, shart: 'x.bino_id = $1', param: bino.id });
   })
 );
 
@@ -324,9 +369,18 @@ admin.get(
     await jihozQrChop(req, res, {
       sarlavha: `${xona.bino} · ${xona.raqam}-xona`,
       orqaga: `/xonalar/${xona.id}`,
+      manzil: `/admin/xonalar/${xona.id}/jihoz-qr`,
       shart: 'x.id = $1',
       param: xona.id,
     });
+  })
+);
+
+admin.post(
+  `/xonalar${ID}/jihoz-qr`,
+  h(async (req, res) => {
+    const xona = await xonaOl(toId(req.params.id));
+    await jihozQrYarat(req, res, { manzil: `/admin/xonalar/${xona.id}/jihoz-qr`, shart: 'x.id = $1', param: xona.id });
   })
 );
 
@@ -520,13 +574,20 @@ admin.post(
   })
 );
 
-// Yorliq yo'qolsa yoki yirtilsa — yangi QR; eskisi ishlamay qoladi
+// Bitta jihozga QR-kod yaratish; kodi bor bo'lsa (yorliq yo'qolsa yoki yirtilsa) — yangisi, eskisi ishlamay qoladi
 admin.post(
   `/jihozlar${ID}/qr-yangilash`,
   h(async (req, res) => {
     const j = await jihozOl(toId(req.params.id));
+    if (!j.faol) throw new HttpError(400, 'Hisobdan chiqarilgan jihozga QR-kod yaratilmaydi');
     await query('UPDATE jihozlar SET qr_token = $2 WHERE id = $1', [j.id, jihozToken()]);
-    flash(req, 'ok', 'Yangi QR-kod yaratildi. Eskisi endi ishlamaydi — yangisini chop etib yopishtiring.');
+    flash(
+      req,
+      'ok',
+      j.qr_token
+        ? 'Yangi QR-kod yaratildi. Eskisi endi ishlamaydi — yangisini chop etib yopishtiring.'
+        : 'QR-kod yaratildi. Uni chop etib jihozga yopishtiring.'
+    );
     res.redirect(`/jihozlar/${j.id}`);
   })
 );
@@ -565,7 +626,7 @@ xonalar.get(
     const xona = await xonaOl(toId(req.params.id));
     const [jihozRows, arizalar, svg] = await Promise.all([
       many(
-        `SELECT j.id, j.belgi, j.inventar_raqami, j.faol, t.nomi AS tur,
+        `SELECT j.id, j.belgi, j.inventar_raqami, j.faol, t.nomi AS tur, j.qr_token IS NOT NULL AS qrli,
                 (SELECT count(*) FROM arizalar a WHERE a.jihoz_id = j.id AND a.holat = ANY($2::text[]))::int AS ochiq,
                 (SELECT count(*) FROM arizalar a WHERE a.jihoz_id = j.id AND a.holat <> 'rad_etilgan'
                    AND a.yaratilgan > now() - interval '90 days')::int AS soni90
@@ -611,8 +672,8 @@ jihozlar.get(
       arizalar,
       soni90,
       muammoli: soni90 >= 3,
-      svg: await jihozQrSvg(j.qr_token),
-      qrManzil: jihozQrUrl(j.qr_token),
+      svg: j.qr_token ? await jihozQrSvg(j.qr_token) : null,
+      qrManzil: j.qr_token ? jihozQrUrl(j.qr_token) : null,
     });
   })
 );
@@ -621,6 +682,7 @@ jihozlar.get(
   `${ID}/qr.svg`,
   h(async (req, res) => {
     const j = await jihozOl(toId(req.params.id));
+    if (!j.qr_token) throw new HttpError(404, 'Bu jihozga hali QR-kod yaratilmagan');
     res.type('image/svg+xml');
     res.attachment(`qr-${j.bino}-${j.xona}-${j.tur}-${j.belgi}.svg`.replace(/[^\w.-]+/g, '-'));
     res.send(await jihozQrSvg(j.qr_token));

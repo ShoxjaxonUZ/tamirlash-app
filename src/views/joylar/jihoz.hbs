@@ -41,6 +41,7 @@
   <aside class="side-col">
     <section class="card qr-card">
       <h2>Jihoz QR-kodi</h2>
+      {{#if svg}}
       <div class="qr">{{{svg}}}</div>
       <p class="small muted break">{{qrManzil}}</p>
       <p class="small muted">Skanerlansa, ariza faqat shu jihoz uchun beriladi. Ochiq arizasi bo'lsa, yangi xabar o'shanga qo'shiladi.</p>
@@ -49,6 +50,15 @@
         <a class="btn btn-ghost btn-sm" href="/admin/xonalar/{{j.xona_id}}/jihoz-qr" target="_blank" rel="noopener">Xonaning jihoz QR-kodlari</a>
         <form method="post" action="/admin/jihozlar/{{j.id}}/qr-yangilash" data-tasdiq="Yangi QR-kod yaratilsinmi? Eskisi ishlamay qoladi.">{{> csrf}}<button class="btn btn-ghost btn-sm" type="submit">Yangi QR-kod yaratish</button></form>
       </div>
+      {{else}}
+      <p class="small muted">Bu jihozga hali QR-kod yaratilmagan. Yaratilgach, uni chop etib jihozga yopishtirasiz — skanerlansa, ariza faqat shu jihoz uchun beriladi.</p>
+      {{#if j.faol}}
+      <div class="stack-tight">
+        <form method="post" action="/admin/jihozlar/{{j.id}}/qr-yangilash">{{> csrf}}<button class="btn btn-primary btn-sm" type="submit">{{> icon name="qr"}}QR-kod yaratish</button></form>
+        <a class="btn btn-ghost btn-sm" href="/admin/xonalar/{{j.xona_id}}/jihoz-qr" target="_blank" rel="noopener">Xonaning barcha jihozlariga</a>
+      </div>
+      {{/if}}
+      {{/if}}
     </section>
   </aside>
 </div>

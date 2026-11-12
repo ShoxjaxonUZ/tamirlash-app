@@ -9,7 +9,7 @@ TZ: [Ta'mirlash arizalari tizimi — TZ va reja](../TZ-tamirlash-arizalari.md)
 | TZ | Nima qilingan |
 |---|---|
 | FR-1 Ariza berish | Bino → qavat → xona → jihoz; tavsif, xonadagi joyi, 4 muhimlik darajasi, 3 tagacha rasm. Raqam: `T-2026-0001` |
-| FR-2 QR-kod | **Har jihoz uchun QR** (`/j/…`): skanerlansa ariza faqat shu jihoz uchun ochiladi. Xona uchun QR (`/q/…`) — rozetka, eshik kabi jihozsiz muammolar uchun. Xona yoki bino bo'yicha A4 ga yorliq chop etish (tur bo'yicha filtr), SVG yuklab olish, QR ni yangilash |
+| FR-2 QR-kod | **Har jihoz uchun QR** (`/j/…`): skanerlansa ariza faqat shu jihoz uchun ochiladi. Kodni admin **"QR-kod yaratish"** tugmasi bilan yaratadi — bitta jihozga, xonaga yoki binoga, tur bo'yicha tanlab. Xona uchun QR (`/q/…`) — rozetka, eshik kabi jihozsiz muammolar uchun. Xona yoki bino bo'yicha A4 ga yorliq chop etish (tur bo'yicha filtr), SVG yuklab olish, QR ni yangilash |
 | FR-3 Dublikatlar | **Bir jihoz — bitta ochiq ariza** (bazada unikal indeks): ikkinchi odam yozsa yangi ariza ochilmaydi, uning izohi va rasmi mavjud arizaga qo'shiladi, u kuzatuvchi bo'ladi; muhimroq xabar muhimlik va muddatni oshiradi. Jihozsiz arizalarda — xonadagi shu turdagi ochiq arizalar tavsiya qilinadi, "Menda ham shu muammo"; boshliq dublikatni asosiysiga birlashtiradi |
 | FR-4 Biriktirish | Mutaxassisligi mos ustalar birinchi, bandligi bilan; muddat muhimlikdan avtomatik (4 soat / 1 / 3 / 7 ish kuni), qo'lda o'zgartirish |
 | FR-5 Usta ishi | Ishni boshladim · Ehtiyot qism kutilmoqda · Bajarildi (izoh + rasm) · Almashtirish kerak |

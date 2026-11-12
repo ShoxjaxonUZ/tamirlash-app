@@ -28,13 +28,49 @@ describe('Jihoz QR-kodi va bir xil arizalar', { skip: H.skip }, () => {
   const arizalarSoni = async () => (await H.db().one('SELECT count(*)::int AS n FROM arizalar')).n;
   const komp3 = (extra = {}) => ({ xona_id: f.x101.id, jihoz_id: f.komp3, muhimlik: 'orta', tavsif: 'Konditsioner issiq bermayapti', ...extra });
 
-  it("Har bir jihozga QR token avtomatik beriladi (bazaga yozishda, saytda qo'shishda)", async () => {
-    const tokenlar = (await H.db().many('SELECT qr_token FROM jihozlar')).map((r) => r.qr_token);
+  it("QR-kod avtomatik berilmaydi — admin tugma bilan yaratadi (jihoz, xona, bino; tur bo'yicha)", async () => {
+    assert.equal((await H.db().one('SELECT count(qr_token)::int AS n FROM jihozlar')).n, 0);
+    await boshliq.yubor('/admin/jihozlar', { xona_id: f.x102.id, tur_id: f.turStul, belgi: '#9' });
+    const stul9 = await H.db().one("SELECT id, qr_token FROM jihozlar WHERE belgi = '#9'");
+    assert.equal(stul9.qr_token, null, "yangi jihoz ham QR-kodsiz");
+
+    // Jihoz sahifasi: "QR-kod yaratish" tugmasi; kod yo'q — SVG ham yo'q
+    const sahifa = await boshliq.get(`/jihozlar/${f.komp3}`);
+    assert.match(sahifa.text, /hali QR-kod yaratilmagan/);
+    assert.match(sahifa.text, new RegExp(`action="/admin/jihozlar/${f.komp3}/qr-yangilash"`));
+    assert.equal((await boshliq.get(`/jihozlar/${f.komp3}/qr.svg`)).status, 404);
+    assert.match((await boshliq.get(`/xonalar/${f.x101.id}`)).text, /QR yo&#x27;q|QR yo'q/);
+
+    // Chop etish sahifasi: yorliq yo'q, yaratish tugmasi bor
+    const bosh = await boshliq.get(`/admin/xonalar/${f.x101.id}/jihoz-qr`);
+    assert.match(bosh.text, /2 ta jihozda QR-kod yo(?:'|&#x27;)q/);
+    assert.match(bosh.text, /Hali QR-kod yaratilmagan/);
+    assert.doesNotMatch(bosh.text, /class="jqr-label"/);
+
+    // Faqat stullarga: tur filtri saqlanadi
+    const r = await boshliq.yubor(`/admin/xonalar/${f.x101.id}/jihoz-qr`, { tur: f.turStul });
+    assert.equal(r.headers.location, `/admin/xonalar/${f.x101.id}/jihoz-qr?tur=${f.turStul}`);
+    assert.match(await token(f.stul1), /^[0-9a-f]{16}$/);
+    assert.equal(await token(f.komp3), null, 'kompyuter tanlanmagan');
+    assert.match((await boshliq.get(r.headers.location)).text, /1 ta jihozga QR-kod yaratildi/);
+
+    // Bitta jihozga — jihoz sahifasidagi tugma
+    const bitta = await boshliq.yubor(`/admin/jihozlar/${f.komp3}/qr-yangilash`);
+    assert.equal(bitta.headers.location, `/jihozlar/${f.komp3}`);
+    assert.match(await token(f.komp3), /^[0-9a-f]{16}$/);
+    assert.match((await boshliq.get(`/jihozlar/${f.komp3}`)).text, /QR-kod yaratildi\. Uni chop etib/);
+
+    // Butun bino: qolganlariga; bor kodlar o'zgarmaydi
+    const eski = await token(f.stul1);
+    await boshliq.yubor(`/admin/binolar/${f.bino}/jihoz-qr`);
+    assert.equal(await token(f.stul1), eski);
+    const tokenlar = (await H.db().many('SELECT qr_token FROM jihozlar WHERE faol')).map((x) => x.qr_token);
     assert.ok(tokenlar.every((t) => /^[0-9a-f]{16}$/.test(t)));
     assert.equal(new Set(tokenlar).size, tokenlar.length);
-    await boshliq.yubor('/admin/jihozlar', { xona_id: f.x102.id, tur_id: f.turStul, belgi: '#9' });
-    const yangi = await H.db().one("SELECT qr_token FROM jihozlar WHERE belgi = '#9'");
-    assert.match(yangi.qr_token, /^[0-9a-f]{16}$/);
+    assert.match((await boshliq.get(`/admin/binolar/${f.bino}/jihoz-qr`)).text, /4 ta yorliq/);
+
+    // Talaba yarata olmaydi
+    assert.equal((await talaba.yubor(`/admin/xonalar/${f.x102.id}/jihoz-qr`)).status, 403);
   });
 
   it("/j/:token formani shu jihozga qulflab ochadi", async () => {
@@ -149,7 +185,7 @@ describe('Jihoz QR-kodi va bir xil arizalar', { skip: H.skip }, () => {
     );
   });
 
-  it("Migratsiya avvaldan bor dublikatlarni birlashtiradi", async () => {
+  it("Migratsiyalar: 003 avvaldan bor dublikatlarni birlashtiradi, 004 avtomatik QR-kodlarni olib tashlaydi", async () => {
     const { pool } = H.db();
     await pool.query('DROP INDEX uq_arizalar_jihoz_ochiq');
     const ins = (raqam, user) =>
@@ -161,15 +197,24 @@ describe('Jihoz QR-kodi va bir xil arizalar', { skip: H.skip }, () => {
     const eski = await ins('T-ESKI-1', f.talaba.id);
     const dub = await ins('T-ESKI-2', f.talaba3.id);
 
-    const sql = fs.readFileSync(path.join(__dirname, '../../src/db/migrations/003_jihoz_qr.sql'), 'utf8');
+    const migratsiya = (nom) => fs.readFileSync(path.join(__dirname, `../../src/db/migrations/${nom}.sql`), 'utf8');
     const c = await pool.connect();
     try {
       await c.query('BEGIN');
-      await c.query(sql);
+      await c.query(migratsiya('003_jihoz_qr'));
+      await c.query('COMMIT');
+      assert.equal((await c.query('SELECT count(qr_token)::int AS n FROM jihozlar')).rows[0].n, 4, '003 hammasiga kod beradi');
+      await c.query('BEGIN');
+      await c.query(migratsiya('004_jihoz_qr_qolda'));
       await c.query('COMMIT');
     } finally {
       c.release();
     }
+    assert.equal((await H.db().one('SELECT count(qr_token)::int AS n FROM jihozlar')).n, 0, "004 dan keyin kodlar yo'q");
+    const ustun = await H.db().one(
+      "SELECT is_nullable, column_default FROM information_schema.columns WHERE table_name = 'jihozlar' AND column_name = 'qr_token'"
+    );
+    assert.deepEqual(ustun, { is_nullable: 'YES', column_default: null });
     const d = await H.ariza(dub);
     assert.equal(d.holat, 'rad_etilgan');
     assert.equal(d.birlashtirilgan_id, eski);
@@ -180,6 +225,7 @@ describe('Jihoz QR-kodi va bir xil arizalar', { skip: H.skip }, () => {
   });
 
   it("Jihoz QR yorliqlarini chop etish, SVG va yangi QR", async () => {
+    await boshliq.yubor(`/admin/binolar/${f.bino}/jihoz-qr`);
     const xona = await boshliq.get(`/admin/xonalar/${f.x101.id}/jihoz-qr`);
     assert.equal(xona.status, 200);
     assert.match(xona.text, /Kompyuter #3/);

@@ -1,11 +1,23 @@
 <div class="print-toolbar no-print">
   <a href="{{orqaga}}">← {{sarlavha}}</a>
   <form method="get" class="jqr-filter">
-    {{#each turlar}}<label class="check"><input type="checkbox" name="tur" value="{{id}}" {{#if tanlangan}}checked{{/if}}> {{nomi}} ({{soni}})</label>{{/each}}
+    {{#each turlar}}<label class="check"><input type="checkbox" name="tur" value="{{id}}" {{#if tanlangan}}checked{{/if}}> {{nomi}} ({{qrli}}/{{soni}})</label>{{/each}}
     <button class="btn btn-ghost btn-sm" type="submit">Ko'rsatish</button>
   </form>
   <span>{{kartalar.length}} ta yorliq · A4 varaqqa 21 tadan</span>
-  <button class="btn btn-primary" type="button" data-chop>Chop etish</button>
+  <button class="btn btn-primary" type="button" data-chop {{#unless kartalar.length}}disabled{{/unless}}>Chop etish</button>
+</div>
+
+<div class="jqr-panel no-print">
+  {{> flash}}
+  {{#if qrsiz}}
+  <form method="post" action="{{manzil}}" class="alert alert-warn jqr-yarat">
+    {{> csrf}}
+    {{#each tanlanganTurlar}}<input type="hidden" name="tur" value="{{this}}">{{/each}}
+    <span><strong>{{qrsiz}} ta jihozda QR-kod yo'q</strong>{{#if tanlanganTurlar.length}} (tanlangan turlar){{/if}}. Yaratilgach, yorliqlari shu yerda chiqadi.</span>
+    <button class="btn btn-primary btn-sm" type="submit">QR-kod yaratish ({{qrsiz}} ta)</button>
+  </form>
+  {{/if}}
 </div>
 
 {{#if kartalar.length}}
@@ -24,5 +36,11 @@
   {{/each}}
 </div>
 {{else}}
-<div class="container">{{> bosh matn="Bu yerda jihoz yo'q."}}</div>
+<div class="container">
+  {{#if jami}}
+    {{> bosh matn="Hali QR-kod yaratilmagan. Yuqoridagi «QR-kod yaratish» tugmasini bosing — kerak bo'lsa, avval jihoz turlarini tanlang."}}
+  {{else}}
+    {{> bosh matn="Bu yerda jihoz yo'q."}}
+  {{/if}}
+</div>
 {{/if}}

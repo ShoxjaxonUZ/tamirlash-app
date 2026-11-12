@@ -28,6 +28,7 @@
                 {{#unless faol}}<span class="badge">Hisobdan chiqarilgan</span>{{/unless}}
                 {{#if ochiq}}<span class="badge holat-jarayonda">Ta'mirda</span>{{else}}{{#if faol}}<span class="badge holat-yopilgan">Ishlaydi</span>{{/if}}{{/if}}
                 {{#if (gt soni90 2)}}<span class="badge badge-warn" title="90 kunda {{soni90}} marta buzilgan">Muammoli</span>{{/if}}
+                {{#if faol}}{{#unless qrli}}<span class="badge" title="Jihozga hali QR-kod yaratilmagan">QR yo'q</span>{{/unless}}{{/if}}
               </td>
             </tr>
             {{/each}}

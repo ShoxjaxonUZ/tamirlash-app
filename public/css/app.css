@@ -452,3 +452,7 @@ html:not(.js) .rasm-btn input { max-width: 200px; font-size: 13px; }
 .jqr-text small { font-size: 8.5px; color: #555; overflow-wrap: anywhere; }
 .jqr-filter { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
 @media print { .jqr-sheet { padding: 0; max-width: none; } .jqr-label:nth-child(21n + 1) { break-before: page; } .jqr-label:first-child { break-before: auto; } }
+
+/* Jihoz QR: yaratish paneli (chop etilmaydi) */
+.jqr-panel > * { margin: 12px 16px 0; }
+.jqr-yarat { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
