@@ -34,6 +34,9 @@ function createApp() {
   app.set('views', path.join(__dirname, 'views'));
   if (config.isProd) app.enable('view cache');
   app.locals.versiya = pkg.version;
+  // QR sahifalarida ogohlantirish: manzil lokal bo'lsa, telefon QR-kodni ocha olmaydi
+  app.locals.appUrl = config.appUrl;
+  app.locals.qrLokal = config.lokalManzil;
 
   app.use(
     helmet({
@@ -63,7 +66,7 @@ function createApp() {
     '/healthz',
     h(async (req, res) => {
       await query('SELECT 1');
-      res.json({ ok: true });
+      res.json({ ok: true, url: config.appUrl });
     })
   );
   app.use('/telegram', require('./modules/telegram/routes'));

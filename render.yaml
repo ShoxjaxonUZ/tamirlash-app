@@ -30,7 +30,7 @@ services:
         value: admin
       - key: ADMIN_PAROL
         sync: false
-      # Masalan: https://tamirlash.onrender.com — QR-kodlar va Telegram havolalari shu manzilga olib boradi
+      # Ixtiyoriy: o'z domeningiz bo'lsa. Bo'sh bo'lsa — Render bergan https://<nom>.onrender.com (RENDER_EXTERNAL_URL)
       - key: APP_URL
         sync: false
       - key: ISH_KUNLARI

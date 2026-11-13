@@ -94,7 +94,7 @@ createdb tamirlash_test
 TEST_DATABASE_URL=postgresql://postgres:PAROL@localhost:5432/tamirlash_test npm test
 ```
 
-77 ta test: TZ 10-bo'limidagi **14 ta qabul qilish holati** (`qabul.test.js`, `jihoz-qr.test.js`), xavfsizlik (CSRF, fayl yuklash, rasmga ruxsat, login cheklovi, open redirect, XSS, SQL), jihoz QR va bir xil arizalarni qo'shish (shu jumladan 5 ta bir vaqtdagi so'rov), boshqaruv (birlashtirish, almashtirish, qayta biriktirish, parallel so'rovlar, Excel import/eksport, foydalanuvchilar), Telegram (soxta API bilan), zaxira va tiklash, vaqt va holat mantiqi. Test bazasi har faylda tozalanadi — nomida `test` bo'lmasa testlar ishga tushmaydi. GitHub'da har push'da testlar avtomatik ishlaydi (`.github/workflows/ci.yml`).
+80 ta test: TZ 10-bo'limidagi **14 ta qabul qilish holati** (`qabul.test.js`, `jihoz-qr.test.js`), xavfsizlik (CSRF, fayl yuklash, rasmga ruxsat, login cheklovi, open redirect, XSS, SQL), jihoz QR va bir xil arizalarni qo'shish (shu jumladan 5 ta bir vaqtdagi so'rov), boshqaruv (birlashtirish, almashtirish, qayta biriktirish, parallel so'rovlar, Excel import/eksport, foydalanuvchilar), Telegram (soxta API bilan), zaxira va tiklash, vaqt va holat mantiqi. Test bazasi har faylda tozalanadi — nomida `test` bo'lmasa testlar ishga tushmaydi. GitHub'da har push'da testlar avtomatik ishlaydi (`.github/workflows/ci.yml`).
 
 ## Tuzilma
 
@@ -132,8 +132,10 @@ tests/           unit/, integration/
 
 1. Kodni GitHub'ga yuklang.
 2. Render → **New → Blueprint** → repozitoriyni tanlang. `render.yaml` baza va web-xizmatni birga yaratadi.
-3. So'raladigan qiymatlar: `ADMIN_PAROL` (kamida 8 belgi), `APP_URL` (masalan `https://tamirlash.onrender.com`), Telegram uchun `TG_BOT_TOKEN`, `TG_BOT_USERNAME` (ixtiyoriy).
+3. So'raladigan qiymatlar: `ADMIN_PAROL` (kamida 8 belgi), Telegram uchun `TG_BOT_TOKEN`, `TG_BOT_USERNAME` (ixtiyoriy). `APP_URL` ni bo'sh qoldirish mumkin: QR-kodlar va Telegram havolalari Render bergan manzilga (`https://<nom>.onrender.com`) olib boradi; o'z domeningiz bo'lsa — uni yozing. Tekshirish: `/healthz` javobidagi `url`.
 4. Telegram ishlatilsa: xizmat ishga tushgach Render → Shell → `npm run tg:webhook`.
+
+**QR-kodni telefonda lokal sinash:** `localhost` manzili telefonda ochilmaydi (QR sahifalarida ogohlantirish chiqadi). Kompyuter va telefon bitta Wi-Fi da bo'lsa, `.env` ga `APP_URL=http://<kompyuter IP si>:3000` yozing (IP: `ipconfig`).
 
 Bepul rejadagi cheklovlar: disk vaqtinchalik — rasmlar va zaxira fayllari qayta joylashda o'chadi (zaxirani admin sahifasidan yuklab oling yoki pullik rejada Disk ulang va `UPLOAD_DIR`, `ZAXIRA_DIR` ni unga yo'naltiring); server 15 daqiqa so'rovsiz qolsa uxlaydi, rejalashtiruvchi faqat uyg'oq paytda ishlaydi; bepul baza 30 kundan keyin o'chadi.
 

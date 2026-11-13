@@ -23,11 +23,18 @@ if (!ishKunlari.length) throw new Error("ISH_KUNLARI noto'g'ri: masalan 1,2,3,4,
 
 const bool = (v, def) => (v === undefined || v === '' ? def : v === 'true');
 
+// Saytning tashqi manzili — QR-kodlar va Telegram havolalari shunga olib boradi.
+// APP_URL berilmasa, Render o'zi beradigan RENDER_EXTERNAL_URL (https://<nom>.onrender.com) olinadi.
+const appUrl = (env.APP_URL || env.RENDER_EXTERNAL_URL || `http://localhost:${port}`).trim().replace(/\/+$/, '');
+// localhost, 127.x, ::1, 0.0.0.0 — telefon bunday manzilni ocha olmaydi
+const lokalManzil = /^https?:\/\/(localhost|127\.\d+\.\d+\.\d+|\[::1\]|0\.0\.0\.0)(:\d+)?(\/|$)/i.test(appUrl);
+
 module.exports = {
   isProd,
   isTest,
   port,
-  appUrl: (env.APP_URL || `http://localhost:${port}`).replace(/\/+$/, ''),
+  appUrl,
+  lokalManzil,
   databaseUrl: env.DATABASE_URL,
   dbSsl: bool(env.DB_SSL, false),
   dbPoolMax: Number(env.DB_POOL_MAX) || 10,
