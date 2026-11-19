@@ -53,6 +53,7 @@ const AMALLAR = {
   dublikat_qoshildi: "Dublikat ariza qo'shildi",
   menda_ham: '"Menda ham shu muammo"',
   izoh_qoshildi: "Qo'shimcha xabar",
+  avto_biriktirildi: 'Ustaga avtomatik biriktirildi',
   yopildi: 'Boshliq yopdi',
   avto_yopildi: 'Avtomatik yopildi',
   baho: "Baho qo'yildi",

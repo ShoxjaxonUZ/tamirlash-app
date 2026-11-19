@@ -451,3 +451,8 @@ html:not(.js) .rasm-btn input { max-width: 200px; font-size: 13px; }
 .jihoz-tugma { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
 .jihoz-tugma p { margin: 0; }
 @media (max-width: 899px) { .jihoz-malumot { padding-bottom: 76px; } }
+
+/* Ustalar sahifasi: avtomatik biriktirish */
+.avto-card { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 16px; }
+.avto-card h2 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
+.avto-card p { margin: 0; max-width: 720px; }

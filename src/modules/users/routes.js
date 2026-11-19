@@ -2,7 +2,7 @@
 // /admin/ustalar — ustalar, ularning mutaxassisligi va bandligi (boshliq va admin).
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { one, many, tx } = require('../../db/pool');
+const { one, many, tx, query } = require('../../db/pool');
 const { h, toId, flash, HttpError } = require('../../lib/http');
 const { Tekshiruv } = require('../../lib/validate');
 const { ROLLAR, TOIFALAR, MUTAXASSISLIKLAR } = require('../../lib/roles');
@@ -209,7 +209,23 @@ ustalar.get(
         WHERE u.rol = 'usta' AND u.faol
         GROUP BY u.id ORDER BY u.familiya, u.ism`
     );
-    res.render('users/ustalar', { title: 'Ustalar', rows, mutaxassisliklar });
+    const avto = await one("SELECT qiymat = 'true' AS yoqilgan FROM sozlamalar WHERE kalit = 'avto_biriktirish'");
+    res.render('users/ustalar', { title: 'Ustalar', rows, mutaxassisliklar, avto: !avto || avto.yoqilgan });
+  })
+);
+
+// Avtomatik biriktirishni yoqish / o'chirish (boshliq va admin)
+ustalar.post(
+  '/avto',
+  h(async (req, res) => {
+    const yoq = req.body.yoqilgan === 'true';
+    await query(
+      `INSERT INTO sozlamalar (kalit, qiymat, user_id) VALUES ('avto_biriktirish', $1, $2)
+       ON CONFLICT (kalit) DO UPDATE SET qiymat = EXCLUDED.qiymat, user_id = EXCLUDED.user_id, yangilangan = now()`,
+      [String(yoq), req.user.id]
+    );
+    flash(req, 'ok', yoq ? "Avtomatik biriktirish yoqildi: yangi arizalar mos ustaga o'zi beriladi." : "Avtomatik biriktirish o'chirildi: arizalarni qo'lda biriktirasiz.");
+    res.redirect('/admin/ustalar');
   })
 );
 

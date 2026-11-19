@@ -96,7 +96,9 @@ router.post(
         'ok',
         a.qoshildi
           ? `Bu jihoz bo'yicha ${a.raqam} arizasi allaqachon bor — xabaringiz unga qo'shildi. Holat o'zgarsa, sizga ham xabar keladi.`
-          : `Ariza ${a.raqam} qabul qilindi. Holatini shu sahifada kuzatishingiz mumkin.`
+          : a.usta
+            ? `Ariza ${a.raqam} qabul qilindi va ustaga biriktirildi: ${a.usta}. Holatini shu sahifada kuzatishingiz mumkin.`
+            : `Ariza ${a.raqam} qabul qilindi. Holatini shu sahifada kuzatishingiz mumkin.`
       );
       res.redirect(`/arizalar/${a.id}`);
     } catch (err) {

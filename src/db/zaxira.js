@@ -13,6 +13,7 @@ const time = require('../lib/time');
 // Tiklash tartibi: avval boshqalar havola qiladigan jadvallar
 const JADVALLAR = [
   'users',
+  'sozlamalar',
   'usta_mutaxassislik',
   'binolar',
   'xonalar',

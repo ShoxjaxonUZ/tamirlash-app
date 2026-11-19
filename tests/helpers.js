@@ -71,6 +71,8 @@ async function fixtures() {
   f.usta2 = await user('usta2', 'usta', ['mebel']);
   f.boshliq = await user('boshliq', 'boshliq');
   f.admin = await q("SELECT id, rol FROM users WHERE login = 'admin'");
+  // Testlar "Yangi" holatdan boshlaydi; avtomatik biriktirish o'z testida yoqiladi (avto-biriktirish.test.js)
+  await q("UPDATE sozlamalar SET qiymat = 'false' WHERE kalit = 'avto_biriktirish' RETURNING kalit");
   return f;
 }
 

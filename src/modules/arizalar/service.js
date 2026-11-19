@@ -14,6 +14,32 @@ const RUXSAT_YOQ = "Bu amalga ruxsatingiz yo'q";
 const jihozNomi = (a) => [a.tur, a.jihoz].filter(Boolean).join(' ');
 const nomi = (a) => `${a.raqam} (${a.bino}, ${a.xona}-xona — ${jihozNomi(a)})`;
 
+// Avtomatik biriktirish yoqilganmi (sozlamalar jadvali; yozuv bo'lmasa — yoqilgan)
+async function avtoBiriktirishmi(c) {
+  const r = await one("SELECT qiymat FROM sozlamalar WHERE kalit = 'avto_biriktirish'", [], c);
+  return !r || r.qiymat === 'true';
+}
+
+// Yangi arizaga usta: avval mutaxassisligi aynan mos, keyin "umumiy"; ular orasidan faol ishi eng kami,
+// teng bo'lsa — eng uzoq vaqt ish olmagani. Mos usta bo'lmasa — null (boshliq qo'lda biriktiradi).
+const mosUsta = (c, turId) =>
+  one(
+    `SELECT u.id, u.ism, u.familiya,
+            (SELECT count(*) FROM arizalar a
+              WHERE a.usta_id = u.id AND a.holat IN ('biriktirilgan', 'jarayonda', 'kutilmoqda'))::int AS faol_ishlar,
+            (SELECT max(a.yaratilgan) FROM arizalar a WHERE a.usta_id = u.id) AS oxirgi
+       FROM users u
+      WHERE u.rol = 'usta' AND u.faol
+        AND EXISTS (SELECT 1 FROM usta_mutaxassislik m JOIN jihoz_turlari t ON t.id = $1
+                     WHERE m.user_id = u.id AND m.mutaxassislik IN (t.mutaxassislik, 'umumiy'))
+      ORDER BY EXISTS (SELECT 1 FROM usta_mutaxassislik m JOIN jihoz_turlari t ON t.id = $1
+                        WHERE m.user_id = u.id AND m.mutaxassislik = t.mutaxassislik) DESC,
+               faol_ishlar, oxirgi NULLS FIRST, u.id
+      LIMIT 1`,
+    [turId],
+    c
+  );
+
 async function keyingiRaqam(c) {
   const yil = time.yil();
   const r = await one(
@@ -194,11 +220,27 @@ async function yaratish(user, d, rasmlar = []) {
       );
     }
     await tarix(c, r.id, { yangi: 'yangi', amal: 'yaratildi', userId: user.id });
-    // Har bir yangi ariza boshliq va adminga xabar qilinadi (biriktirish uchun)
     const a = await qulfla(c, r.id);
+    // Avtomatik biriktirish: mutaxassisligi mos, eng kam band ustaga
+    const avto = await avtoBiriktirishmi(c);
+    const usta = avto ? await mosUsta(c, a.tur_id) : null;
+    if (usta) {
+      tekshirOtish('yangi', 'biriktirilgan');
+      await c.query("UPDATE arizalar SET usta_id = $2, holat = 'biriktirilgan', yangilangan = now() WHERE id = $1", [a.id, usta.id]);
+      await tarix(c, a.id, {
+        eski: 'yangi',
+        yangi: 'biriktirilgan',
+        amal: 'avto_biriktirildi',
+        izoh: `Usta: ${fio(usta)} (mutaxassisligi mos, faol ishlari: ${usta.faol_ishlar}); muddat: ${time.formatVaqt(a.muddat)}`,
+      });
+      await xabar.yubor(c, [usta.id], a.id, `Sizga yangi ish: ${nomi(a)}. Muddat: ${time.formatVaqt(a.muddat)}`, user.id);
+      await xabar.yubor(c, [a.user_id], a.id, `${a.raqam}: arizangiz ustaga biriktirildi (${fio(usta)})`);
+    }
+    // Har bir yangi ariza boshliq va adminga xabar qilinadi
     const sarlavha = d.muhimlik === 'shoshilinch' ? 'Shoshilinch ariza' : 'Yangi ariza';
-    await xabar.yubor(c, await xabar.boshqaruvchilar(c), a.id, `${sarlavha}: ${nomi(a)} — ${d.tavsif}`, user.id);
-    return { id: r.id, raqam, qoshildi: false };
+    const kimga = usta ? ` → ${fio(usta)} (avtomatik)` : avto ? ' — mos usta yo‘q, qo‘lda biriktiring' : '';
+    await xabar.yubor(c, await xabar.boshqaruvchilar(c), a.id, `${sarlavha}: ${nomi(a)}${kimga} — ${d.tavsif}`, user.id);
+    return { id: r.id, raqam, qoshildi: false, usta: usta ? fio(usta) : null };
   });
 }
 

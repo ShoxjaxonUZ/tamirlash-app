@@ -4,6 +4,14 @@
 </div>
 <p class="muted">Mutaxassislik biriktirishda qaysi ustalar birinchi taklif qilinishini belgilaydi.</p>
 
+<section class="card avto-card">
+  <div>
+    <h2>{{> icon name="wrench"}}Avtomatik biriktirish: {{#if avto}}<span class="badge holat-yopilgan">yoqilgan</span>{{else}}<span class="badge">o'chirilgan</span>{{/if}}</h2>
+    <p class="muted small">{{#if avto}}Yangi ariza mutaxassisligi mos (yoki «umumiy»), faol ishi eng kam ustaga o'zi biriktiriladi; usta va ariza egasi darhol xabar oladi. Mos usta bo'lmasa — ariza sizda qoladi. Kerak bo'lsa, ariza sahifasida boshqa ustaga o'tkazasiz.{{else}}Yangi arizalarni ustaga o'zingiz biriktirasiz.{{/if}}</p>
+  </div>
+  <form method="post" action="/admin/ustalar/avto">{{> csrf}}<input type="hidden" name="yoqilgan" value="{{#if avto}}false{{else}}true{{/if}}"><button class="btn {{#if avto}}btn-ghost{{else}}btn-primary{{/if}}" type="submit">{{#if avto}}O'chirish{{else}}Yoqish{{/if}}</button></form>
+</section>
+
 {{#if rows.length}}
 <div class="usta-grid">
   {{#each rows}}
