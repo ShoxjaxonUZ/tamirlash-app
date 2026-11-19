@@ -76,9 +76,16 @@ describe('Jihoz QR-kodi va bir xil arizalar', { skip: H.skip }, () => {
 
   it("/j/:token avval jihoz haqida ma'lumot ko'rsatadi, «Ariza berish» formani shu jihozga qulflab ochadi", async () => {
     const t = await token(f.komp3);
+    // Kirmagan odam ham ma'lumotni ko'radi; "Ariza berish" uni login orqali shu formaga olib boradi
     const anonim = await H.request(app).get(`/j/${t}`);
-    assert.equal(anonim.status, 302);
-    assert.equal(anonim.headers.location, `/login?next=${encodeURIComponent(`/j/${t}`)}`);
+    assert.equal(anonim.status, 200);
+    assert.match(anonim.text, /<h1>Kompyuter #3<\/h1>/);
+    assert.match(anonim.text, /INV-1/);
+    assert.match(anonim.text, /Ariza berish uchun tizimga kirasiz/);
+    assert.match(anonim.headers['x-robots-tag'], /noindex/);
+    const formaManzil = `/arizalar/yangi?xona=${f.x101.id}&jihoz=${f.komp3}`;
+    const kirish = await H.request(app).get(formaManzil);
+    assert.equal(kirish.headers.location, `/login?next=${encodeURIComponent(formaManzil)}`);
 
     const r = await talaba.get(`/j/${t}`);
     assert.equal(r.status, 200);
@@ -116,6 +123,10 @@ describe('Jihoz QR-kodi va bir xil arizalar', { skip: H.skip }, () => {
     assert.match(info.text, /Ta(?:'|&#x27;)mirda — T-\d{4}-\d{4}/);
     assert.match(info.text, /Bu jihoz bo(?:'|&#x27;)yicha ariza allaqachon bor/);
     assert.match(info.text, /xabaringiz T-\d{4}-\d{4} ga qo(?:'|&#x27;)shiladi/);
+    assert.match(info.text, /Konditsioner issiq bermayapti/, "kirgan foydalanuvchi tavsifni ko'radi");
+    const mehmon = await H.request(app).get(`/j/${await token(f.komp3)}`);
+    assert.match(mehmon.text, /Ta(?:'|&#x27;)mirda — T-\d{4}-\d{4}/);
+    assert.doesNotMatch(mehmon.text, /Konditsioner issiq bermayapti/, "kirmaganlarga ariza tavsifi ko'rsatilmaydi");
 
     const forma = await talaba2.get(`/arizalar/yangi?xona=${f.x101.id}&jihoz=${f.komp3}`);
     assert.match(forma.text, /Bu jihoz bo(?:'|&#x27;)yicha ariza allaqachon bor/);

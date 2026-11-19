@@ -21,7 +21,7 @@
   <section class="card dup mavjud">
     <h2>{{> icon name="alert"}}Bu jihoz bo'yicha ariza allaqachon bor</h2>
     <div class="row-tight"><strong>{{ochiq.raqam}}</strong>{{> holat h=ochiq.holat}}<span class="muted small">{{ochiq.xabar_berganlar}} kishi xabar bergan · {{vaqt ochiq.yaratilgan}}</span></div>
-    <p>{{qisqa ochiq.tavsif 200}}</p>
+    {{#unless mehmon}}<p>{{qisqa ochiq.tavsif 200}}</p>{{/unless}}
     {{#if (or ochiq.meniki ochiq.qoshilganman)}}<a class="btn btn-ghost btn-sm" href="/arizalar/{{ochiq.id}}">Arizani ochish</a>{{/if}}
   </section>
   {{/if}}
@@ -29,6 +29,7 @@
   <div class="jihoz-tugma">
     <a class="btn btn-primary btn-lg btn-block" href="{{arizaHavola}}">{{> icon name="plus"}}Ariza berish</a>
     <p class="muted small">{{#if ochiq}}Siz ham shu muammoni ko'rgan bo'lsangiz — bosing: yangi ariza ochilmaydi, xabaringiz {{ochiq.raqam}} ga qo'shiladi.{{else}}Jihoz buzilgan yoki nosoz bo'lsa — bosing. Ariza faqat shu jihoz uchun beriladi.{{/if}}</p>
+    {{#if mehmon}}<p class="muted small">Ariza berish uchun tizimga kirasiz — login va parolni xo'jalik bo'limi yoki administrator beradi. Kirgach, forma shu jihoz bilan ochiladi.</p>{{/if}}
     {{#if boshqaruv}}<a class="btn btn-ghost btn-block" href="/jihozlar/{{j.id}}">Jihoz kartochkasi va ta'mir tarixi</a>{{/if}}
   </div>
 </div>

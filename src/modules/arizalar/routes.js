@@ -327,10 +327,14 @@ jihozQr.get(
         )
       : null;
     if (!j) throw new HttpError(404, "QR-kod eskirgan yoki jihoz topilmadi. Arizani xona tanlab bering.");
-    // Avval jihoz haqida ma'lumot, pastida "Ariza berish" — forma shu jihozga qulflangan holda ochiladi
-    const forma = await Q.formaJihozi(j.id, j.xona_id, req.user.id);
+    // Avval jihoz haqida ma'lumot (kirishsiz ham), pastida "Ariza berish" — forma shu jihozga qulflangan holda
+    // ochiladi; kirmagan bo'lsa, avval login, keyin shu formaga qaytadi. Kirmaganlarga ariza tavsifi ko'rsatilmaydi.
+    const forma = await Q.formaJihozi(j.id, j.xona_id, req.user ? req.user.id : null);
+    res.set('X-Robots-Tag', 'noindex, nofollow');
     res.render('arizalar/jihoz', {
       title: `${j.tur} ${j.belgi}`,
+      layout: req.user ? 'main' : 'auth',
+      mehmon: !req.user,
       j,
       ochiq: forma && forma.ochiq,
       arizaHavola: `/arizalar/yangi?xona=${j.xona_id}&jihoz=${j.id}`,
