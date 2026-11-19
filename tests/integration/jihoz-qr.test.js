@@ -4,6 +4,7 @@ const path = require('path');
 const { describe, it, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const H = require('../helpers');
+const { jihozQrSvg } = require('../../src/lib/qr');
 
 describe('Jihoz QR-kodi va bir xil arizalar', { skip: H.skip }, () => {
   let app;
@@ -73,15 +74,27 @@ describe('Jihoz QR-kodi va bir xil arizalar', { skip: H.skip }, () => {
     assert.equal((await talaba.yubor(`/admin/xonalar/${f.x102.id}/jihoz-qr`)).status, 403);
   });
 
-  it("/j/:token formani shu jihozga qulflab ochadi", async () => {
+  it("/j/:token avval jihoz haqida ma'lumot ko'rsatadi, «Ariza berish» formani shu jihozga qulflab ochadi", async () => {
     const t = await token(f.komp3);
     const anonim = await H.request(app).get(`/j/${t}`);
     assert.equal(anonim.status, 302);
     assert.equal(anonim.headers.location, `/login?next=${encodeURIComponent(`/j/${t}`)}`);
 
     const r = await talaba.get(`/j/${t}`);
-    assert.equal(r.headers.location, `/arizalar/yangi?xona=${f.x101.id}&jihoz=${f.komp3}`);
-    const forma = await talaba.get(r.headers.location);
+    assert.equal(r.status, 200);
+    assert.match(r.text, /<h1>Kompyuter #3<\/h1>/);
+    assert.match(r.text, /A bino · 1-qavat · 101-xona/);
+    assert.match(r.text, /INV-1/);
+    assert.match(r.text, /Ishlaydi, ochiq ariza yo(?:'|&#x27;)q/);
+    assert.match(r.text, /Hali ta(?:'|&#x27;)mirlanmagan/);
+    const havola = `/arizalar/yangi?xona=${f.x101.id}&jihoz=${f.komp3}`;
+    const matn = r.text.replace(/&#x3D;/g, '=').replace(/&amp;/g, '&');
+    assert.ok(matn.includes(`href="${havola}"`), "«Ariza berish» shu jihoz formasiga olib boradi");
+    assert.match(r.text, /Ariza berish<\/a>/);
+    assert.doesNotMatch(r.text, /Jihoz kartochkasi/, 'talabaga boshqaruv havolasi yo\'q');
+    assert.match((await boshliq.get(`/j/${t}`)).text, new RegExp(`href="/jihozlar/${f.komp3}">Jihoz kartochkasi`));
+
+    const forma = await talaba.get(havola);
     assert.match(forma.text, /Kompyuter #3/);
     assert.match(forma.text, /ariza faqat shu jihoz uchun/);
     assert.match(forma.text, new RegExp(`name="jihoz_id" value="${f.komp3}"`));
@@ -97,6 +110,12 @@ describe('Jihoz QR-kodi va bir xil arizalar', { skip: H.skip }, () => {
   it("Ikkinchi odam xuddi shu jihozga yozsa — yangi ariza ochilmaydi, xabari mavjud arizaga qo'shiladi", async () => {
     asosiy = await H.yangiAriza(talaba, komp3());
     const oldin = await arizalarSoni();
+
+    // Skanerlaganda: jihoz "Ta'mirda", mavjud ariza ko'rinadi, tugma shu arizaga qo'shishini aytadi
+    const info = await talaba2.get(`/j/${await token(f.komp3)}`);
+    assert.match(info.text, /Ta(?:'|&#x27;)mirda — T-\d{4}-\d{4}/);
+    assert.match(info.text, /Bu jihoz bo(?:'|&#x27;)yicha ariza allaqachon bor/);
+    assert.match(info.text, /xabaringiz T-\d{4}-\d{4} ga qo(?:'|&#x27;)shiladi/);
 
     const forma = await talaba2.get(`/arizalar/yangi?xona=${f.x101.id}&jihoz=${f.komp3}`);
     assert.match(forma.text, /Bu jihoz bo(?:'|&#x27;)yicha ariza allaqachon bor/);
@@ -231,21 +250,41 @@ describe('Jihoz QR-kodi va bir xil arizalar', { skip: H.skip }, () => {
     assert.equal(xona.status, 200);
     assert.match(xona.text, /Kompyuter #3/);
     assert.match(xona.text, /Stul #1/);
-    assert.match(xona.text, new RegExp(`https://tamir.test/j/${await token(f.komp3)}`));
+    // QR-kod to'g'ri manzilni saqlaydi, lekin yorliqda havola matni yozilmaydi
+    assert.ok(xona.text.includes(await jihozQrSvg(await token(f.komp3))), 'QR shu jihozning /j/ manziliga olib boradi');
+    assert.doesNotMatch(xona.text, /tamir\.test\/j\//, "yorliqda havola matni yo'q");
+    assert.match(xona.text, /INV-1/, 'katta yorliqda inventar raqami bor');
     const faqatStul = await boshliq.get(`/admin/xonalar/${f.x101.id}/jihoz-qr?tur=${f.turStul}`);
     assert.match(faqatStul.text, /Stul #1/);
     assert.doesNotMatch(faqatStul.text, /Kompyuter #3<\/strong>/);
-    assert.equal((await boshliq.get(`/admin/binolar/${f.bino}/jihoz-qr`)).status, 200);
-    assert.match(xona.text, /A4 varaqqa 21 tadan/);
-    // Kichik yorliq (38x21 mm, A4 da 65 ta): manzil matni va inventar sig'maydi — faqat QR, nomi, joyi
-    const kichik = await boshliq.get(`/admin/xonalar/${f.x101.id}/jihoz-qr?olcham=kichik&tur=${f.turKomp}`);
+    assert.equal((await talaba.get(`/admin/xonalar/${f.x101.id}/jihoz-qr`)).status, 403);
+
+    // A4 ko'rinishi: varaqlar soni va "ko'rib chiqdim" tasdig'isiz chop etish tugmasi o'chiq
+    const varaqlar = (r) => (r.text.match(/class="a4-varaq/g) || []).length;
+    assert.equal(varaqlar(xona), 1);
+    assert.match(xona.text, /2 ta yorliq · 1 ta A4 varaq/);
+    assert.match(xona.text, /data-chop-tasdiq/);
+    assert.match(xona.text, /<button class="btn btn-primary" type="button" data-chop disabled>/);
+    for (let i = 1; i <= 20; i++) {
+      await H.db().query(
+        "INSERT INTO jihozlar (xona_id, tur_id, belgi, qr_token) VALUES ($1, $2, $3, substr(md5(random()::text), 1, 16))",
+        [f.x102.id, f.turStul, `#${100 + i}`]
+      );
+    }
+    const bino = await boshliq.get(`/admin/binolar/${f.bino}/jihoz-qr`);
+    assert.equal(varaqlar(bino), 2, '24 ta katta yorliq — 21 + 3');
+    assert.match(bino.text, /24 ta yorliq · 2 ta A4 varaq/);
+    assert.match(bino.text, /2-varaq \/ 2 · 3 ta yorliq/);
+
+    // Kichik yorliq (38x21 mm, A4 da 65 ta): faqat QR, nomi va joyi
+    const kichik = await boshliq.get(`/admin/binolar/${f.bino}/jihoz-qr?olcham=kichik`);
+    assert.equal(varaqlar(kichik), 1, '24 ta kichik yorliq bitta varaqqa sig\'adi');
+    assert.match(kichik.text, /class="a4-varaq kichik"/);
     assert.match(kichik.text, /class="jqr-sheet kichik"/);
-    assert.match(kichik.text, /A4 varaqqa 65 tadan/);
     assert.match(kichik.text, /<option value="kichik" selected>/);
     assert.match(kichik.text, /Kompyuter #3/);
-    assert.doesNotMatch(kichik.text, /<small>https:\/\/tamir\.test\/j\//);
-    assert.doesNotMatch(kichik.text, /INV-1/);
-    assert.equal((await talaba.get(`/admin/xonalar/${f.x101.id}/jihoz-qr`)).status, 403);
+    assert.match(kichik.text, /INV-1/, 'kichik yorliqda ham inventar raqami bor');
+    assert.doesNotMatch(kichik.text, /tamir\.test\/j\//);
 
     const svg = await boshliq.get(`/jihozlar/${f.komp3}/qr.svg`);
     assert.match(svg.headers['content-type'], /image\/svg\+xml/);

@@ -1,0 +1,34 @@
+<div class="narrow jihoz-malumot">
+  <div class="page-head">
+    <div>
+      <p class="muted">{{j.bino}} · {{j.qavat}}-qavat · {{j.xona}}-xona</p>
+      <h1>{{j.tur}} {{j.belgi}}</h1>
+    </div>
+    {{#if ochiq}}<span class="badge holat-jarayonda">Ta'mirda</span>{{else}}<span class="badge holat-yopilgan">Ishlaydi</span>{{/if}}
+  </div>
+
+  <section class="card">
+    <dl class="kv">
+      <dt>Inventar raqami</dt><dd><strong class="inv">{{default j.inventar_raqami "—"}}</strong></dd>
+      <dt>Turi</dt><dd>{{j.tur}} {{j.belgi}}</dd>
+      <dt>Joyi</dt><dd>{{j.bino}}, {{j.qavat}}-qavat, {{j.xona}}-xona</dd>
+      <dt>Holati</dt><dd>{{#if ochiq}}Ta'mirda — {{ochiq.raqam}}, {{holat ochiq.holat}}{{else}}Ishlaydi, ochiq ariza yo'q{{/if}}</dd>
+      <dt>Ta'mirlangan</dt><dd>{{#if j.tamirlar}}{{j.tamirlar}} marta, oxirgisi {{sana j.oxirgi_tamir}}{{else}}Hali ta'mirlanmagan{{/if}}</dd>
+    </dl>
+  </section>
+
+  {{#if ochiq}}
+  <section class="card dup mavjud">
+    <h2>{{> icon name="alert"}}Bu jihoz bo'yicha ariza allaqachon bor</h2>
+    <div class="row-tight"><strong>{{ochiq.raqam}}</strong>{{> holat h=ochiq.holat}}<span class="muted small">{{ochiq.xabar_berganlar}} kishi xabar bergan · {{vaqt ochiq.yaratilgan}}</span></div>
+    <p>{{qisqa ochiq.tavsif 200}}</p>
+    {{#if (or ochiq.meniki ochiq.qoshilganman)}}<a class="btn btn-ghost btn-sm" href="/arizalar/{{ochiq.id}}">Arizani ochish</a>{{/if}}
+  </section>
+  {{/if}}
+
+  <div class="jihoz-tugma">
+    <a class="btn btn-primary btn-lg btn-block" href="{{arizaHavola}}">{{> icon name="plus"}}Ariza berish</a>
+    <p class="muted small">{{#if ochiq}}Siz ham shu muammoni ko'rgan bo'lsangiz — bosing: yangi ariza ochilmaydi, xabaringiz {{ochiq.raqam}} ga qo'shiladi.{{else}}Jihoz buzilgan yoki nosoz bo'lsa — bosing. Ariza faqat shu jihoz uchun beriladi.{{/if}}</p>
+    {{#if boshqaruv}}<a class="btn btn-ghost btn-block" href="/jihozlar/{{j.id}}">Jihoz kartochkasi va ta'mir tarixi</a>{{/if}}
+  </div>
+</div>

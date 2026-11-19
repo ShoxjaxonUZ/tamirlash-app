@@ -177,7 +177,8 @@ const turlarOl = (v) =>
     .concat(v || [])
     .map(Number)
     .filter((n) => Number.isSafeInteger(n) && n > 0);
-// Yorliq o'lchami: katta — 70x42 mm (A4 da 21 ta), kichik — 38x21 mm (A4 da 65 ta, tayyor yorliq varag'iga mos)
+// Yorliq o'lchami (standart tayyor yorliq varaqlari): katta — 63,5x38,1 mm (A4 da 3x7 = 21 ta),
+// kichik — 38,1x21,2 mm (A4 da 5x13 = 65 ta)
 const kichikmi = (v) => v === 'kichik';
 const soroq = (turlar, kichik) => {
   const q = [...turlar.map((t) => `tur=${t}`), ...(kichik ? ['olcham=kichik'] : [])];
@@ -214,7 +215,11 @@ async function jihozQrChop(req, res, { sarlavha, orqaga, manzil, shart, param })
   const tanlangan = mavjudTurlar.filter((t) => !turlar.length || turlar.includes(t.id));
   const jami = tanlangan.reduce((s, t) => s + t.soni, 0);
   const qrsiz = tanlangan.reduce((s, t) => s + t.soni - t.qrli, 0);
-  const kartalar = await Promise.all(rows.map(async (j) => ({ ...j, svg: await jihozQrSvg(j.qr_token), manzil: jihozQrUrl(j.qr_token) })));
+  // Yorliqda havola matni yo'q — faqat QR, jihoz nomi va joyi. Ekranda haqiqiy A4 varaqlar ko'rinadi.
+  const kartalar = await Promise.all(rows.map(async (j) => ({ ...j, svg: await jihozQrSvg(j.qr_token) })));
+  const varaqda = kichik ? 65 : 21;
+  const varaqlar = [];
+  for (let i = 0; i < kartalar.length; i += varaqda) varaqlar.push({ raqam: varaqlar.length + 1, kartalar: kartalar.slice(i, i + varaqda) });
   res.render('joylar/jihoz-qr', {
     title: `Jihoz QR-kodlari — ${sarlavha}`,
     layout: 'print',
@@ -225,7 +230,8 @@ async function jihozQrChop(req, res, { sarlavha, orqaga, manzil, shart, param })
     jami,
     qrsiz,
     kichik,
-    varaqda: kichik ? 65 : 21,
+    varaqda,
+    varaqlar,
     tanlanganTurlar: turlar,
     turlar: mavjudTurlar.map((t) => ({ ...t, tanlangan: turlar.includes(t.id) })),
   });

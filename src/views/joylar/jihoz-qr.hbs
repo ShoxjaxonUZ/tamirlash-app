@@ -1,17 +1,23 @@
+<link rel="stylesheet" href="/css/yorliq.css?v={{versiya}}">
 <div class="print-toolbar no-print">
   <a href="{{orqaga}}">← {{sarlavha}}</a>
   <form method="get" class="jqr-filter">
     {{#each turlar}}<label class="check"><input type="checkbox" name="tur" value="{{id}}" {{#if tanlangan}}checked{{/if}}> {{nomi}} ({{qrli}}/{{soni}})</label>{{/each}}
     <label class="check">O'lcham
       <select name="olcham">
-        <option value="katta" {{#unless kichik}}selected{{/unless}}>Katta — 70×42 mm, A4 da 21 ta</option>
+        <option value="katta" {{#unless kichik}}selected{{/unless}}>Katta — 63×38 mm, A4 da 21 ta</option>
         <option value="kichik" {{#if kichik}}selected{{/if}}>Kichik — 38×21 mm, A4 da 65 ta</option>
       </select>
     </label>
     <button class="btn btn-ghost btn-sm" type="submit">Ko'rsatish</button>
   </form>
-  <span>{{kartalar.length}} ta yorliq · A4 varaqqa {{varaqda}} tadan</span>
-  <button class="btn btn-primary" type="button" data-chop {{#unless kartalar.length}}disabled{{/unless}}>Chop etish</button>
+  <span>{{kartalar.length}} ta yorliq · {{varaqlar.length}} ta A4 varaq</span>
+  {{#if kartalar.length}}
+  <span class="jqr-tasdiq">
+    <label class="check"><input type="checkbox" data-chop-tasdiq> Varaqlarni ko'rib chiqdim — to'g'ri</label>
+    <button class="btn btn-primary" type="button" data-chop disabled>Chop etish</button>
+  </span>
+  {{/if}}
 </div>
 
 <div class="jqr-panel no-print">
@@ -26,22 +32,30 @@
     <button class="btn btn-primary btn-sm" type="submit">QR-kod yaratish ({{qrsiz}} ta)</button>
   </form>
   {{/if}}
-  {{#if kichik}}{{#if kartalar.length}}<p class="alert alert-muted">Chop etishda: masshtab <b>100%</b> («Haqiqiy o'lcham»), kolontitullar o'chiq. Tayyor yorliq varag'i (A4, 65 ta, 38×21 mm) bo'lmasa — oddiy o'zi yopishadigan A4 qog'ozga chop etib, chiziqlar bo'yicha qirqing. Avval oddiy qog'ozga sinab, varaqqa ustma-ust qo'yib tekshiring.</p>{{/if}}{{/if}}
+  {{#if kartalar.length}}<p class="alert alert-muted">Pastda — chop etilganda qanday chiqishi: har bir oq varaq haqiqiy A4 (210×297 mm). Ko'rib chiqing, to'g'ri bo'lsa «Varaqlarni ko'rib chiqdim» ni belgilab, <b>Chop etish</b> ni bosing. Printer oynasida masshtab <b>100%</b> («Haqiqiy o'lcham»), chetlar «Standart» yoki «Yo'q», kolontitullar o'chiq bo'lsin. Tayyor yorliq varag'i (A4, {{varaqda}} ta) bo'lmasa — o'zi yopishadigan A4 qog'ozga chop etib, chiziqlar bo'yicha qirqing.</p>{{/if}}
 </div>
 
 {{#if kartalar.length}}
-<div class="jqr-sheet{{#if kichik}} kichik{{/if}}">
-  {{#each kartalar}}
-  <div class="jqr-label">
-    <div class="qr">{{{svg}}}</div>
-    <div class="jqr-text">
-      <strong>{{tur}} {{belgi}}</strong>
-      <span>{{bino}} · {{xona}}-xona</span>
-      {{#unless @root.kichik}}{{#if inventar_raqami}}<span>{{inventar_raqami}}</span>{{/if}}{{/unless}}
-      <span>Buzilsa — skanerlang</span>
-      {{#unless @root.kichik}}<small>{{manzil}}</small>{{/unless}}
+<div class="a4-oldindan">
+  {{#each varaqlar}}
+  <figure class="a4-sahifa">
+    <figcaption class="no-print">{{raqam}}-varaq / {{@root.varaqlar.length}} · {{kartalar.length}} ta yorliq</figcaption>
+    <div class="a4-varaq{{#if @root.kichik}} kichik{{/if}}">
+      <div class="jqr-sheet{{#if @root.kichik}} kichik{{/if}}">
+        {{#each kartalar}}
+        <div class="jqr-label">
+          <div class="qr">{{{svg}}}</div>
+          <div class="jqr-text">
+            <strong>{{tur}} {{belgi}}</strong>
+            <span>{{bino}} · {{xona}}-xona</span>
+            {{#if inventar_raqami}}<span class="jqr-inv">{{inventar_raqami}}</span>{{/if}}
+            <span>Buzilsa — skanerlang</span>
+          </div>
+        </div>
+        {{/each}}
+      </div>
     </div>
-  </div>
+  </figure>
   {{/each}}
 </div>
 {{else}}

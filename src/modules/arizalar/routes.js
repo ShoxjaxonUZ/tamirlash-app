@@ -10,6 +10,7 @@ const { Tekshiruv } = require('../../lib/validate');
 const { MUHIMLIK, ISHDA } = require('../../lib/holat');
 const upload = require('../../middleware/upload');
 const { tokenTogrimi } = require('../../lib/qr');
+const { boshqaruvchi } = require('../../lib/roles');
 const S = require('./service');
 const Q = require('./queries');
 
@@ -315,13 +316,26 @@ jihozQr.get(
     const token = String(req.params.token);
     const j = tokenTogrimi(token)
       ? await one(
-          `SELECT j.id, j.xona_id FROM jihozlar j JOIN xonalar x ON x.id = j.xona_id
+          `SELECT j.id, j.xona_id, j.belgi, j.inventar_raqami, t.nomi AS tur,
+                  x.raqam AS xona, x.qavat, b.nomi AS bino,
+                  (SELECT count(*) FROM arizalar a WHERE a.jihoz_id = j.id AND a.holat = 'yopilgan')::int AS tamirlar,
+                  (SELECT max(a.yopilgan) FROM arizalar a WHERE a.jihoz_id = j.id AND a.holat = 'yopilgan') AS oxirgi_tamir
+             FROM jihozlar j JOIN jihoz_turlari t ON t.id = j.tur_id
+             JOIN xonalar x ON x.id = j.xona_id JOIN binolar b ON b.id = x.bino_id
             WHERE j.qr_token = $1 AND j.faol AND x.faol`,
           [token]
         )
       : null;
     if (!j) throw new HttpError(404, "QR-kod eskirgan yoki jihoz topilmadi. Arizani xona tanlab bering.");
-    res.redirect(`/arizalar/yangi?xona=${j.xona_id}&jihoz=${j.id}`);
+    // Avval jihoz haqida ma'lumot, pastida "Ariza berish" — forma shu jihozga qulflangan holda ochiladi
+    const forma = await Q.formaJihozi(j.id, j.xona_id, req.user.id);
+    res.render('arizalar/jihoz', {
+      title: `${j.tur} ${j.belgi}`,
+      j,
+      ochiq: forma && forma.ochiq,
+      arizaHavola: `/arizalar/yangi?xona=${j.xona_id}&jihoz=${j.id}`,
+      boshqaruv: boshqaruvchi(req.user),
+    });
   })
 );
 

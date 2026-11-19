@@ -1,0 +1,50 @@
+/* Jihoz QR yorliqlari (faqat /admin/.../jihoz-qr sahifasi yuklaydi).
+   Ekranda yorliqlar haqiqiy A4 varaqlarda (210 x 297 mm) ko'rsatiladi — chop etilganda aynan shunday chiqadi.
+   O'lchamlar standart tayyor yorliq varaqlariga mos:
+     katta  — 63,5 x 38,1 mm, 3 x 7 = 21 ta (chetlar: yuqori 15,15 mm, yon 7,21 mm, ustunlar orasi 2,54 mm)
+     kichik — 38,1 x 21,2 mm, 5 x 13 = 65 ta (chetlar: yuqori 10,7 mm, yon 4,67 mm, ustunlar orasi 2,54 mm)
+   QR-kod 33 x 33 modul: katta yorliqda 30 mm (~0,9 mm modul), kichikda 18,5 mm (~0,5 mm modul). */
+
+/* Varaq chetlarini sahifaning o'zi beradi — printer chetlari 0 */
+@page { size: A4; margin: 0; }
+
+/* --- Boshqaruv paneli (chop etilmaydi) --- */
+.jqr-filter { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.jqr-tasdiq { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.jqr-tasdiq .check { font-weight: 600; }
+.jqr-panel > * { margin: 12px 16px 0; }
+.jqr-yarat { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+
+/* --- A4 varaqlar --- */
+.a4-oldindan { background: #e6e9ef; padding: 20px 16px 40px; margin-top: 12px; display: flex; flex-direction: column; align-items: center; gap: 22px; overflow-x: auto; }
+.a4-sahifa { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.a4-sahifa figcaption { font-size: 13px; color: #444; }
+.a4-varaq { box-sizing: border-box; width: 210mm; height: 296mm; padding: 15.15mm 7.21mm 0; background: #fff; color: #111; box-shadow: 0 2px 14px rgba(0, 0, 0, 0.2); overflow: hidden; }
+.a4-varaq.kichik { padding: 10.7mm 4.67mm 0; }
+
+/* --- Yorliqlar --- */
+.jqr-sheet { display: grid; grid-template-columns: repeat(3, 63.5mm); grid-auto-rows: 38.1mm; column-gap: 2.54mm; }
+.jqr-sheet.kichik { grid-template-columns: repeat(5, 38.1mm); grid-auto-rows: 21.2mm; }
+.jqr-label { box-sizing: border-box; height: 100%; min-width: 0; border: 1px dashed #bbb; padding: 3mm; display: flex; gap: 2.5mm; align-items: center; overflow: hidden; }
+.jqr-label .qr { flex: none; }
+.jqr-label .qr svg { display: block; width: 30mm; height: 30mm; max-width: none; margin: 0; }
+.jqr-text { display: flex; flex-direction: column; gap: 1mm; font-size: 8pt; line-height: 1.25; min-width: 0; overflow-wrap: anywhere; }
+.jqr-text strong { font-size: 10pt; line-height: 1.15; }
+.jqr-inv { font-family: ui-monospace, Consolas, monospace; font-weight: 600; }
+
+.jqr-sheet.kichik .jqr-label { padding: 1.2mm 1.4mm; gap: 1.2mm; }
+.jqr-sheet.kichik .jqr-label .qr svg { width: 18.5mm; height: 18.5mm; }
+.jqr-sheet.kichik .jqr-text { gap: 0.6mm; font-size: 5.5pt; line-height: 1.15; }
+.jqr-sheet.kichik .jqr-text strong { font-size: 7pt; line-height: 1.1; }
+
+/* Telefonda varaq ekranga sig'ishi uchun kichraytiriladi (chop etishga ta'sir qilmaydi) */
+@media screen and (max-width: 860px) {
+  .a4-varaq { zoom: 0.42; }
+}
+
+@media print {
+  .a4-oldindan { display: block; background: none; padding: 0; margin: 0; overflow: visible; }
+  .a4-sahifa { display: block; break-after: page; page-break-after: always; }
+  .a4-sahifa:last-child { break-after: auto; page-break-after: auto; }
+  .a4-varaq { box-shadow: none; }
+}

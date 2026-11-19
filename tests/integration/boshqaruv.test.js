@@ -4,6 +4,7 @@ const { describe, it, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const ExcelJS = require('exceljs');
 const H = require('../helpers');
+const { qrSvg } = require('../../src/lib/qr');
 
 describe('Boshqaruv', { skip: H.skip }, () => {
   let app;
@@ -214,7 +215,8 @@ describe('Boshqaruv', { skip: H.skip }, () => {
     assert.match(svg.headers['content-type'], /image\/svg\+xml/);
     const chop = await boshliq.get(`/admin/binolar/${binoId}/qr`);
     assert.match(chop.text, /C bino · 210-xona/);
-    assert.match(chop.text, new RegExp(`https://tamir.test/q/${xona.qr_token}`));
+    assert.ok(chop.text.includes(await qrSvg(xona.qr_token)), "QR shu xonaning /q/ manziliga olib boradi");
+    assert.doesNotMatch(chop.text, /tamir\.test\/q\//, "yorliqda havola matni yo'q");
 
     await boshliq.yubor(`/admin/xonalar/${xonaId}/qr-yangilash`);
     const yangiToken = (await H.db().one('SELECT qr_token FROM xonalar WHERE id = $1', [xonaId])).qr_token;

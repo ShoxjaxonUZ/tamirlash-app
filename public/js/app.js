@@ -247,4 +247,13 @@
   document.querySelectorAll('[data-chop]').forEach(function (b) {
     b.addEventListener('click', function () { window.print(); });
   });
+
+  // Jihoz yorliqlari: A4 varaqlar ko'rib chiqilib tasdiqlanmaguncha "Chop etish" o'chiq
+  document.querySelectorAll('[data-chop-tasdiq]').forEach(function (cb) {
+    var tugma = document.querySelector('[data-chop]');
+    if (!tugma) return;
+    var yangila = function () { tugma.disabled = !cb.checked; };
+    cb.addEventListener('change', yangila);
+    yangila();
+  });
 })();
