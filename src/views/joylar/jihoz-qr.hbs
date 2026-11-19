@@ -2,9 +2,15 @@
   <a href="{{orqaga}}">← {{sarlavha}}</a>
   <form method="get" class="jqr-filter">
     {{#each turlar}}<label class="check"><input type="checkbox" name="tur" value="{{id}}" {{#if tanlangan}}checked{{/if}}> {{nomi}} ({{qrli}}/{{soni}})</label>{{/each}}
+    <label class="check">O'lcham
+      <select name="olcham">
+        <option value="katta" {{#unless kichik}}selected{{/unless}}>Katta — 70×42 mm, A4 da 21 ta</option>
+        <option value="kichik" {{#if kichik}}selected{{/if}}>Kichik — 38×21 mm, A4 da 65 ta</option>
+      </select>
+    </label>
     <button class="btn btn-ghost btn-sm" type="submit">Ko'rsatish</button>
   </form>
-  <span>{{kartalar.length}} ta yorliq · A4 varaqqa 21 tadan</span>
+  <span>{{kartalar.length}} ta yorliq · A4 varaqqa {{varaqda}} tadan</span>
   <button class="btn btn-primary" type="button" data-chop {{#unless kartalar.length}}disabled{{/unless}}>Chop etish</button>
 </div>
 
@@ -15,23 +21,25 @@
   <form method="post" action="{{manzil}}" class="alert alert-warn jqr-yarat">
     {{> csrf}}
     {{#each tanlanganTurlar}}<input type="hidden" name="tur" value="{{this}}">{{/each}}
+    {{#if kichik}}<input type="hidden" name="olcham" value="kichik">{{/if}}
     <span><strong>{{qrsiz}} ta jihozda QR-kod yo'q</strong>{{#if tanlanganTurlar.length}} (tanlangan turlar){{/if}}. Yaratilgach, yorliqlari shu yerda chiqadi.</span>
     <button class="btn btn-primary btn-sm" type="submit">QR-kod yaratish ({{qrsiz}} ta)</button>
   </form>
   {{/if}}
+  {{#if kichik}}{{#if kartalar.length}}<p class="alert alert-muted">Chop etishda: masshtab <b>100%</b> («Haqiqiy o'lcham»), kolontitullar o'chiq. Tayyor yorliq varag'i (A4, 65 ta, 38×21 mm) bo'lmasa — oddiy o'zi yopishadigan A4 qog'ozga chop etib, chiziqlar bo'yicha qirqing. Avval oddiy qog'ozga sinab, varaqqa ustma-ust qo'yib tekshiring.</p>{{/if}}{{/if}}
 </div>
 
 {{#if kartalar.length}}
-<div class="jqr-sheet">
+<div class="jqr-sheet{{#if kichik}} kichik{{/if}}">
   {{#each kartalar}}
   <div class="jqr-label">
     <div class="qr">{{{svg}}}</div>
     <div class="jqr-text">
       <strong>{{tur}} {{belgi}}</strong>
       <span>{{bino}} · {{xona}}-xona</span>
-      {{#if inventar_raqami}}<span>{{inventar_raqami}}</span>{{/if}}
+      {{#unless @root.kichik}}{{#if inventar_raqami}}<span>{{inventar_raqami}}</span>{{/if}}{{/unless}}
       <span>Buzilsa — skanerlang</span>
-      <small>{{manzil}}</small>
+      {{#unless @root.kichik}}<small>{{manzil}}</small>{{/unless}}
     </div>
   </div>
   {{/each}}

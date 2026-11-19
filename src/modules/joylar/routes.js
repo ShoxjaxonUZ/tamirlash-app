@@ -177,12 +177,18 @@ const turlarOl = (v) =>
     .concat(v || [])
     .map(Number)
     .filter((n) => Number.isSafeInteger(n) && n > 0);
-const turQuery = (turlar) => (turlar.length ? `?${turlar.map((t) => `tur=${t}`).join('&')}` : '');
+// Yorliq o'lchami: katta — 70x42 mm (A4 da 21 ta), kichik — 38x21 mm (A4 da 65 ta, tayyor yorliq varag'iga mos)
+const kichikmi = (v) => v === 'kichik';
+const soroq = (turlar, kichik) => {
+  const q = [...turlar.map((t) => `tur=${t}`), ...(kichik ? ['olcham=kichik'] : [])];
+  return q.length ? `?${q.join('&')}` : '';
+};
 
 // Jihozlarga yopishtiriladigan QR yorliqlar (A4 ga 3 x 7). Faqat QR-kodi yaratilgan jihozlar chiqadi;
 // tur bo'yicha filtr — masalan, faqat kompyuter, proyektor, konditsioner (stul va stollarga yorliq shart emas)
 async function jihozQrChop(req, res, { sarlavha, orqaga, manzil, shart, param }) {
   const turlar = turlarOl(req.query.tur);
+  const kichik = kichikmi(req.query.olcham);
   const params = [param];
   let turShart = '';
   if (turlar.length) {
@@ -218,6 +224,8 @@ async function jihozQrChop(req, res, { sarlavha, orqaga, manzil, shart, param })
     kartalar,
     jami,
     qrsiz,
+    kichik,
+    varaqda: kichik ? 65 : 21,
     tanlanganTurlar: turlar,
     turlar: mavjudTurlar.map((t) => ({ ...t, tanlangan: turlar.includes(t.id) })),
   });
@@ -226,6 +234,7 @@ async function jihozQrChop(req, res, { sarlavha, orqaga, manzil, shart, param })
 // "QR-kod yaratish": QR-kodi yo'q faol jihozlarga yangi kod beradi (bor kodlar o'zgarmaydi)
 async function jihozQrYarat(req, res, { manzil, shart, param }) {
   const turlar = turlarOl(req.body.tur);
+  const kichik = kichikmi(req.body.olcham);
   const params = [param];
   let turShart = '';
   if (turlar.length) {
@@ -239,7 +248,7 @@ async function jihozQrYarat(req, res, { manzil, shart, param }) {
     params
   );
   flash(req, 'ok', r.rowCount ? `${r.rowCount} ta jihozga QR-kod yaratildi.` : "QR-kodi yo'q jihoz qolmadi.");
-  res.redirect(manzil + turQuery(turlar));
+  res.redirect(manzil + soroq(turlar, kichik));
 }
 
 admin.get(

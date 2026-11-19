@@ -225,7 +225,8 @@ describe('Jihoz QR-kodi va bir xil arizalar', { skip: H.skip }, () => {
   });
 
   it("Jihoz QR yorliqlarini chop etish, SVG va yangi QR", async () => {
-    await boshliq.yubor(`/admin/binolar/${f.bino}/jihoz-qr`);
+    const yarat = await boshliq.yubor(`/admin/binolar/${f.bino}/jihoz-qr`, { olcham: 'kichik' });
+    assert.equal(yarat.headers.location, `/admin/binolar/${f.bino}/jihoz-qr?olcham=kichik`, "o'lcham saqlanadi");
     const xona = await boshliq.get(`/admin/xonalar/${f.x101.id}/jihoz-qr`);
     assert.equal(xona.status, 200);
     assert.match(xona.text, /Kompyuter #3/);
@@ -235,6 +236,15 @@ describe('Jihoz QR-kodi va bir xil arizalar', { skip: H.skip }, () => {
     assert.match(faqatStul.text, /Stul #1/);
     assert.doesNotMatch(faqatStul.text, /Kompyuter #3<\/strong>/);
     assert.equal((await boshliq.get(`/admin/binolar/${f.bino}/jihoz-qr`)).status, 200);
+    assert.match(xona.text, /A4 varaqqa 21 tadan/);
+    // Kichik yorliq (38x21 mm, A4 da 65 ta): manzil matni va inventar sig'maydi — faqat QR, nomi, joyi
+    const kichik = await boshliq.get(`/admin/xonalar/${f.x101.id}/jihoz-qr?olcham=kichik&tur=${f.turKomp}`);
+    assert.match(kichik.text, /class="jqr-sheet kichik"/);
+    assert.match(kichik.text, /A4 varaqqa 65 tadan/);
+    assert.match(kichik.text, /<option value="kichik" selected>/);
+    assert.match(kichik.text, /Kompyuter #3/);
+    assert.doesNotMatch(kichik.text, /<small>https:\/\/tamir\.test\/j\//);
+    assert.doesNotMatch(kichik.text, /INV-1/);
     assert.equal((await talaba.get(`/admin/xonalar/${f.x101.id}/jihoz-qr`)).status, 403);
 
     const svg = await boshliq.get(`/jihozlar/${f.komp3}/qr.svg`);
